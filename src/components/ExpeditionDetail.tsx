@@ -100,7 +100,7 @@ export default function ExpeditionDetail({ slug }: { slug: string }) {
       <div className="mx-auto max-w-[1500px] px-6 pb-24 sm:px-10 lg:px-16">
         {/* ------------------------------------------------------ facts -- */}
         <dl className="grid gap-px border-b border-[var(--hairline)] py-8 sm:grid-cols-2 lg:grid-cols-4">
-          <Fact label="Status" value={expedition.status} />
+          <Fact label="Status" value={expedition.status} capitalize />
           <Fact
             label="Dates"
             value={
@@ -244,11 +244,21 @@ export default function ExpeditionDetail({ slug }: { slug: string }) {
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({
+  label,
+  value,
+  capitalize,
+}: {
+  label: string;
+  value: string;
+  capitalize?: boolean;
+}) {
   return (
     <div className="px-1 py-2">
       <dt className="eyebrow mb-1.5">{label}</dt>
-      <dd className="text-sm capitalize text-ice">{value}</dd>
+      <dd className={`text-sm text-ice${capitalize ? " capitalize" : ""}`}>
+        {value}
+      </dd>
     </div>
   );
 }
