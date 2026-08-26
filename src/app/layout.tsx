@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   description: "A living view of a changing ocean.",
   // The prototype is private. Belt and braces alongside the header in
   // next.config.ts and public/robots.txt.
+  icons: { icon: "/icon.svg" },
   robots: {
     index: false,
     follow: false,

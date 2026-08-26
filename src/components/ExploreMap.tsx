@@ -219,9 +219,11 @@ export default function ExploreMap() {
         id: "mpa",
         // Passed as a URL so MapLibre fetches it only when switched on.
         data: asset("/data/mpa-marine.geojson"),
-        fillColor: "#3fbf9f",
-        lineColor: "#5fe0c0",
-        fillOpacity: 0.18,
+        // Tuned against the live map: at 0.18 opacity in a muted teal these
+        // were technically rendering and visually absent at global zoom.
+        fillColor: "#37e0b0",
+        lineColor: "#7dffd8",
+        fillOpacity: 0.42,
         nameField: "NAME_ENG",
         popupTitle: "Marine protected area",
         popupFields: [

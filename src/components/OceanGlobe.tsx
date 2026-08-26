@@ -277,8 +277,10 @@ export default function OceanGlobe({
         source: sourceId,
         paint: {
           "line-color": polygon.lineColor,
-          "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.4, 6, 1.1],
-          "line-opacity": 0.75,
+          // Keep a visible stroke even at global zoom, where most protected
+          // areas are smaller than a few pixels and would otherwise vanish.
+          "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.9, 3, 1.4, 7, 2],
+          "line-opacity": 0.95,
         },
       });
 
