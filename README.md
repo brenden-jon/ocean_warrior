@@ -84,14 +84,15 @@ scripts/bake-ice-maps.py 46 years of sea-ice maps, min and max per year
 | Sea surface temperature, 1 km | NASA GIBS / MUR | Live |
 | Chlorophyll-a | NASA GIBS / PACE | Live, current to today |
 | True colour | NASA GIBS / VIIRS | Live, current to today |
-| Sea-ice concentration | NASA GIBS / AMSR2 | Live, 2012–2025 |
+| Sea-ice concentration on the map | NASA GIBS / GHRSST MUR | Live, 2002→now, with annual min/max jump |
 | Bathymetry | GEBCO / Blue Marble | Live |
 | Argo float positions | Ifremer ERDDAP | Live, daily snapshot |
 | NDBC buoys | NOAA | Live, daily snapshot |
 | Global temperature, CO₂ | GISTEMP, NOAA GML | Live, daily snapshot |
 | Surface currents | Copernicus Marine | **Credentials required** |
 | Apparent fishing effort | Global Fishing Watch | **Credentials required** |
-| Marine protected areas | WDPA Aug 2026 | **Connector ready** |
+| Marine protected areas | WDPA Aug 2026 | Live, 6,728 polygons, 1.8 MB gz |
+| Ocean Warrior expedition observations | Ocean Warrior | **Coming soon** — schema built, no data yet |
 | OBIS occurrences, eDNA, coral heat stress | OBIS, NOAA CRW | **Planned** |
 
 Nothing is faked. A layer without credentials says so; it never substitutes
