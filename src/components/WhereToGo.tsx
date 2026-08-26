@@ -63,6 +63,41 @@ export default function WhereToGo() {
           ))}
         </ul>
 
+        <div className="mt-16 border-t border-[var(--hairline)] pt-12">
+          <div className="flex flex-wrap items-end justify-between gap-8">
+            <div className="max-w-xl">
+              <p className="eyebrow mb-3">Take part</p>
+              <h3 className="display text-[clamp(1.6rem,3vw,2.4rem)] leading-tight text-ice">
+                Keeping a pulse on the planet takes a fleet
+              </h3>
+              <p className="mt-4 text-sm leading-relaxed text-muted">
+                Ocean Warrior is an ambitious, long-term attempt to collect
+                critical ocean data from the places nobody else goes — and to
+                keep collecting it, in the same waters, for a decade. Partners,
+                sponsors and supporters are what put the next vessel to sea.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://www.global-warrior.com/sponsorship"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-sm bg-cyan px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-abyss transition-colors duration-200 hover:bg-cyan-bright"
+              >
+                Become a partner
+              </a>
+              <a
+                href="https://www.global-warrior.com/contact"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-sm border border-[var(--hairline-bright)] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-ice transition-colors duration-200 hover:border-cyan hover:text-cyan-bright"
+              >
+                Get in touch
+              </a>
+            </div>
+          </div>
+        </div>
+
         <p className="mt-12 max-w-2xl text-[11px] leading-relaxed text-dim">
           Planetary Pulse is a private prototype for Ocean Warrior. It holds no
           ocean data of its own: everything shown is produced by NASA, NOAA,
