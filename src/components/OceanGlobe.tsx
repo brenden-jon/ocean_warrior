@@ -156,34 +156,48 @@ export default function OceanGlobe({
     }
 
     /*
-     * Do not rely on the `load` event alone.
+     * Readiness is polled, not awaited.
      *
-     * If the style is already loaded by the time this handler is attached —
-     * which happens when tiles come from cache — `load` has already fired and
-     * MapLibre does not replay it. The component then sits with ready=false
-     * forever and NOTHING is drawn: no data layer, no routes, no overlays.
-     * That is exactly the failure this replaces.
+     * Waiting on MapLibre's `load` event does not work reliably here: on the
+     * deployed site the map reaches `isStyleLoaded() === true` while `load`
+     * never fires at all (verified in the browser — the one-time listener was
+     * still pending with the style fully loaded). `styledata` is no better,
+     * because it stops firing once the style settles, and can deliver its last
+     * event a tick before `isStyleLoaded()` flips true.
      *
-     * So: mark ready immediately if the style is already up, otherwise wait for
-     * `load`, and keep `styledata` as a backstop. Guarded so it runs once.
+     * When this goes wrong the component renders its base style and nothing
+     * else — no data layer, no routes, no overlays — which is a silent, total
+     * failure. A short poll is unglamorous and it always terminates.
      */
     let readyFired = false;
+    let pollTimer: number | undefined;
+
     const markReady = () => {
       if (readyFired) return;
       readyFired = true;
+      window.clearTimeout(pollTimer);
       map.current = instance;
       setReady(true);
       onReady?.(instance);
     };
 
-    if (instance.isStyleLoaded()) {
-      markReady();
-    } else {
-      instance.once("load", markReady);
-      instance.on("styledata", () => {
-        if (instance.isStyleLoaded()) markReady();
-      });
-    }
+    const pollForStyle = (attempt = 0) => {
+      if (readyFired) return;
+      if (instance.isStyleLoaded()) {
+        markReady();
+        return;
+      }
+      // ~20 seconds, then proceed regardless: adding layers to a still-settling
+      // style is recoverable, rendering an empty map is not.
+      if (attempt > 160) {
+        markReady();
+        return;
+      }
+      pollTimer = window.setTimeout(() => pollForStyle(attempt + 1), 125);
+    };
+
+    instance.once("load", markReady);
+    pollForStyle();
 
     // Any deliberate interaction cancels auto-rotation for good.
     for (const event of ["mousedown", "touchstart", "wheel", "keydown"] as const) {
@@ -195,6 +209,7 @@ export default function OceanGlobe({
     map.current = instance;
 
     return () => {
+      window.clearTimeout(pollTimer);
       if (rotationFrame.current) cancelAnimationFrame(rotationFrame.current);
       instance.remove();
       map.current = null;
