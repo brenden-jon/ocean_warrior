@@ -48,7 +48,7 @@ export default function PulseHero() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(100deg, rgba(2,9,20,0.92) 0%, rgba(2,9,20,0.72) 26%, rgba(2,9,20,0.18) 52%, transparent 70%), linear-gradient(to top, rgba(2,9,20,0.9) 0%, transparent 34%)",
+            "linear-gradient(100deg, rgba(2,9,20,0.88) 0%, rgba(2,9,20,0.6) 22%, rgba(2,9,20,0.1) 46%, transparent 62%), linear-gradient(to top, rgba(2,9,20,0.85) 0%, transparent 30%)",
         }}
       />
 

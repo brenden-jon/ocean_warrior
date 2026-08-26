@@ -64,12 +64,14 @@ export function buildBaseStyle(options?: {
         type: "raster",
         source: "blue-marble",
         paint: {
-          // Dark, desaturated, low contrast. The base is scenery, not subject.
-          "raster-brightness-max": 0.62,
-          "raster-brightness-min": 0.02,
-          "raster-saturation": -0.42,
-          "raster-contrast": -0.12,
-          "raster-opacity": 0.92,
+          // Gently desaturated, but NOT darkened. Blue Marble is already dark
+          // over ocean, which is most of the frame; pulling brightness down as
+          // well as saturation turned the globe into a silhouette.
+          "raster-brightness-max": 1,
+          "raster-brightness-min": 0,
+          "raster-saturation": -0.18,
+          "raster-contrast": 0.04,
+          "raster-opacity": 1,
           "raster-fade-duration": 260,
         },
       },
@@ -95,23 +97,31 @@ export function buildBaseStyle(options?: {
 
   if (globe) {
     style.projection = { type: "globe" };
-    // A thin cyan-tinted atmosphere. Enough to read as a planet, not so much
-    // that it looks like a screensaver.
+    /*
+     * A thin cyan-tinted atmosphere. Enough to read as a planet, not so much
+     * that it looks like a screensaver.
+     *
+     * `fog-ground-blend` is the dangerous one: it blends `fog-color` into the
+     * globe's SURFACE, not just the space around it. Set high with a near-black
+     * fog colour, it renders the entire planet as a black disc with a lit rim —
+     * which is exactly what the first deployment did. Keep it near zero and let
+     * the atmosphere live at the limb where it belongs.
+     */
     style.sky = {
-      "sky-color": "#04101f",
-      "sky-horizon-blend": 0.55,
-      "horizon-color": "#0b3a52",
-      "horizon-fog-blend": 0.7,
-      "fog-color": "#020914",
-      "fog-ground-blend": 0.6,
+      "sky-color": "#050f1e",
+      "sky-horizon-blend": 0.5,
+      "horizon-color": "#15516e",
+      "horizon-fog-blend": 0.6,
+      "fog-color": "#0a2438",
+      "fog-ground-blend": 0.02,
       "atmosphere-blend": [
         "interpolate",
         ["linear"],
         ["zoom"],
         0,
-        0.9,
+        0.55,
         4,
-        0.5,
+        0.22,
         7,
         0,
       ],
