@@ -155,11 +155,35 @@ export default function OceanGlobe({
       );
     }
 
-    instance.on("load", () => {
+    /*
+     * Do not rely on the `load` event alone.
+     *
+     * If the style is already loaded by the time this handler is attached —
+     * which happens when tiles come from cache — `load` has already fired and
+     * MapLibre does not replay it. The component then sits with ready=false
+     * forever and NOTHING is drawn: no data layer, no routes, no overlays.
+     * That is exactly the failure this replaces.
+     *
+     * So: mark ready immediately if the style is already up, otherwise wait for
+     * `load`, and keep `styledata` as a backstop. Guarded so it runs once.
+     */
+    let readyFired = false;
+    const markReady = () => {
+      if (readyFired) return;
+      readyFired = true;
       map.current = instance;
       setReady(true);
       onReady?.(instance);
-    });
+    };
+
+    if (instance.isStyleLoaded()) {
+      markReady();
+    } else {
+      instance.once("load", markReady);
+      instance.on("styledata", () => {
+        if (instance.isStyleLoaded()) markReady();
+      });
+    }
 
     // Any deliberate interaction cancels auto-rotation for good.
     for (const event of ["mousedown", "touchstart", "wheel", "keydown"] as const) {

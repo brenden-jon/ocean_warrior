@@ -72,13 +72,13 @@ export function buildBaseStyle(options?: {
               type: "Feature",
               properties: { pole: "north" },
               geometry: {
-                type: "Polygon",
+                type: "MultiPolygon",
+                // Split at the antimeridian: a single ring spanning the whole
+                // longitude range is degenerate and can leave the source in a
+                // state the map never reports as loaded.
                 coordinates: [
-                  [
-                    [-180, 85.0], [-90, 85.0], [0, 85.0], [90, 85.0],
-                    [180, 85.0], [180, 89.99], [90, 89.99], [0, 89.99],
-                    [-90, 89.99], [-180, 89.99], [-180, 85.0],
-                  ],
+                  [[[-179.9, 85.0], [-90, 85.0], [-0.05, 85.0], [-0.05, 89.9], [-90, 89.9], [-179.9, 89.9], [-179.9, 85.0]]],
+                  [[[0.05, 85.0], [90, 85.0], [179.9, 85.0], [179.9, 89.9], [90, 89.9], [0.05, 89.9], [0.05, 85.0]]],
                 ],
               },
             },
@@ -86,13 +86,10 @@ export function buildBaseStyle(options?: {
               type: "Feature",
               properties: { pole: "south" },
               geometry: {
-                type: "Polygon",
+                type: "MultiPolygon",
                 coordinates: [
-                  [
-                    [-180, -85.0], [-90, -85.0], [0, -85.0], [90, -85.0],
-                    [180, -85.0], [180, -89.99], [90, -89.99], [0, -89.99],
-                    [-90, -89.99], [-180, -89.99], [-180, -85.0],
-                  ],
+                  [[[-179.9, -85.0], [-90, -85.0], [-0.05, -85.0], [-0.05, -89.9], [-90, -89.9], [-179.9, -89.9], [-179.9, -85.0]]],
+                  [[[0.05, -85.0], [90, -85.0], [179.9, -85.0], [179.9, -89.9], [90, -89.9], [0.05, -89.9], [0.05, -85.0]]],
                 ],
               },
             },
