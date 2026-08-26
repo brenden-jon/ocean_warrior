@@ -180,6 +180,30 @@ export const GIBS_LAYERS: Record<string, GibsLayerDef> = {
     projections: ["epsg3857", "epsg3413"],
   },
 
+  seaIceMur: {
+    id: "GHRSST_L4_MUR_Sea_Ice_Concentration",
+    catalogId: "mur-sea-ice",
+    label: "Sea-ice concentration",
+    tileMatrixSet: "GoogleMapsCompatible_Level7",
+    format: "png",
+    maxNativeZoom: 7,
+    temporal: true,
+    start: "2002-06-01",
+    end: "2026-08-25",
+    projections: ["epsg3857"],
+    legend: ICE_LEGEND,
+    legendUnit: "% concentration",
+  },
+  referenceLabels: {
+    id: "Reference_Labels_15m",
+    catalogId: "gebco-bathymetry",
+    label: "Place names",
+    tileMatrixSet: "GoogleMapsCompatible_Level13",
+    format: "png",
+    maxNativeZoom: 13,
+    temporal: false,
+    projections: ["epsg3857"],
+  },
   /* ------------------------------------------------------------------ ice -- */
   seaIceAmsr2: {
     id: "AMSRU2_Sea_Ice_Concentration_12km",

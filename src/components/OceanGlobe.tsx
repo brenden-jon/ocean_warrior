@@ -37,11 +37,27 @@ export interface PointOverlay {
   popupTitle?: string;
 }
 
+/** A polygon overlay — protected areas, management boundaries, regions. */
+export interface PolygonOverlay {
+  id: string;
+  /** Either inline GeoJSON, or a URL fetched lazily by MapLibre itself. */
+  data: GeoJSON.FeatureCollection | string;
+  fillColor: string;
+  lineColor: string;
+  fillOpacity?: number;
+  popupFields?: { key: string; label: string; unit?: string }[];
+  popupTitle?: string;
+  /** Property holding the feature's display name, used as the popup heading. */
+  nameField?: string;
+}
+
 export interface OceanGlobeProps {
   /** Which GIBS overlay to draw, by key in GIBS_LAYERS. Null for base only. */
   dataLayer: keyof typeof GIBS_LAYERS | null;
   /** Point datasets drawn above the raster. */
   overlays?: PointOverlay[];
+  /** Polygon datasets drawn between the raster and the points. */
+  polygons?: PolygonOverlay[];
   /** ISO date for the overlay. */
   date: string;
   /** Overlay opacity 0–1. */
@@ -70,6 +86,7 @@ const OVERLAY_LAYER = "gibs-overlay-layer";
 export default function OceanGlobe({
   dataLayer,
   overlays = [],
+  polygons = [],
   date,
   opacity = 0.85,
   center = [-20, 25],
@@ -225,6 +242,92 @@ export default function OceanGlobe({
       addExpeditionLayers(instance, expedition);
     }
   }, [expeditions, ready]);
+
+  /* ------------------------------------------------ polygon overlays -- */
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || !ready) return;
+
+    const drawn: string[] = [];
+
+    for (const polygon of polygons) {
+      const sourceId = `pg-src-${polygon.id}`;
+      const fillId = `pg-fill-${polygon.id}`;
+      const lineId = `pg-line-${polygon.id}`;
+      drawn.push(polygon.id);
+
+      if (instance.getSource(sourceId)) continue;
+
+      // A string `data` lets MapLibre fetch the file itself, so a large
+      // boundary set is only downloaded when the layer is actually switched on.
+      instance.addSource(sourceId, { type: "geojson", data: polygon.data });
+
+      instance.addLayer({
+        id: fillId,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": polygon.fillColor,
+          "fill-opacity": polygon.fillOpacity ?? 0.22,
+        },
+      });
+      instance.addLayer({
+        id: lineId,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": polygon.lineColor,
+          "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.4, 6, 1.1],
+          "line-opacity": 0.75,
+        },
+      });
+
+      if (polygon.popupFields) {
+        instance.on("click", fillId, (event) => {
+          const feature = event.features?.[0];
+          if (!feature) return;
+          const props = feature.properties ?? {};
+          const heading = polygon.nameField ? props[polygon.nameField] : "";
+          const rows = polygon.popupFields!
+            .filter((f) => props[f.key] != null && props[f.key] !== "")
+            .map(
+              (f) =>
+                `<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0">
+                   <span style="color:#5d7488">${f.label}</span>
+                   <span style="color:#f4faff;font-variant-numeric:tabular-nums;text-align:right">${props[f.key]}${f.unit ? " " + f.unit : ""}</span>
+                 </div>`,
+            )
+            .join("");
+          new maplibregl.Popup({ closeButton: true, maxWidth: "300px" })
+            .setLngLat(event.lngLat)
+            .setHTML(
+              `<div style="padding:14px 16px;font-family:var(--font-inter),sans-serif;font-size:12px">
+                 <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d7488;margin-bottom:6px">${polygon.popupTitle ?? ""}</div>
+                 ${heading ? `<div style="color:#f4faff;font-size:13px;margin-bottom:8px;line-height:1.35">${heading}</div>` : ""}
+                 ${rows}
+               </div>`,
+            )
+            .addTo(instance);
+        });
+        instance.on("mouseenter", fillId, () => {
+          instance.getCanvas().style.cursor = "pointer";
+        });
+        instance.on("mouseleave", fillId, () => {
+          instance.getCanvas().style.cursor = "";
+        });
+      }
+    }
+
+    return () => {
+      for (const id of drawn) {
+        for (const layerId of [`pg-fill-${id}`, `pg-line-${id}`]) {
+          if (instance.getLayer(layerId)) instance.removeLayer(layerId);
+        }
+        const sourceId = `pg-src-${id}`;
+        if (instance.getSource(sourceId)) instance.removeSource(sourceId);
+      }
+    };
+  }, [polygons, ready]);
 
   /* -------------------------------------------------- point overlays -- */
   useEffect(() => {

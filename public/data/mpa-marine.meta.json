@@ -1,0 +1,18 @@
+{
+  "fetchedAt": null,
+  "source": {
+    "org": "UNEP-WCMC and IUCN",
+    "product": "World Database on Protected Areas (marine), August 2026",
+    "url": "https://www.protectedplanet.net/",
+    "attribution": "UNEP-WCMC and IUCN (2026), Protected Planet: The World Database on Protected Areas (WDPA), August 2026, Cambridge, UK: UNEP-WCMC and IUCN.",
+    "license": "Free for non-commercial use with attribution. Redistribution of the raw dataset is restricted; only simplified display geometry is served here."
+  },
+  "processing": {
+    "sourceFeatures": 17163,
+    "servedFeatures": 6728,
+    "minAreaKm2": 10.0,
+    "areaRetainedPercent": 99.96,
+    "simplification": "Visvalingam, 0.5% of vertices retained, coordinates rounded to 0.001 degrees",
+    "note": "Sites smaller than 10 square kilometres are omitted from the map because they are smaller than a pixel at any zoom this map supports. They remain in the source dataset."
+  }
+}
