@@ -9,6 +9,8 @@ import { getLayer } from "@/lib/catalog";
 import { EXPEDITIONS } from "@/data/expeditions";
 import { useArgo, useNdbc, useSeaIce, relativeAge } from "@/lib/baked";
 import { asset } from "@/lib/paths";
+import { VESSELS } from "@/data/vessels";
+import { BaseLayerOption, LayerGroup, LayerToggle } from "./LayerDrawer";
 
 /**
  * The explore view.
@@ -55,7 +57,7 @@ const BASE_GROUPS: { group: string; layers: BaseLayerOption[] }[] = [
 ];
 
 export default function ExploreMap() {
-  const [layerKey, setLayerKey] = useState<LayerKey>("sstAnomaly");
+  const [layerKey, setLayerKey] = useState<LayerKey | null>("sstAnomaly");
   const [date, setDate] = useState(
     () => GIBS_LAYERS.sstAnomaly.end ?? "2026-08-25",
   );
@@ -68,15 +70,16 @@ export default function ExploreMap() {
   const [showArgo, setShowArgo] = useState(false);
   const [showBuoys, setShowBuoys] = useState(false);
   const [showMpa, setShowMpa] = useState(false);
+  const [showVessels, setShowVessels] = useState(true);
 
   const argo = useArgo();
   const ndbc = useNdbc();
   const ice = useSeaIce();
 
-  const layer = GIBS_LAYERS[layerKey];
-  const meta = getLayer(layer.catalogId);
+  const layer = layerKey ? GIBS_LAYERS[layerKey] : null;
+  const meta = layer ? getLayer(layer.catalogId) : null;
   const effectiveDate = useMemo(
-    () => clampToCoverage(layer, date),
+    () => (layer ? clampToCoverage(layer, date) : date),
     [layer, date],
   );
 
@@ -209,8 +212,43 @@ export default function ExploreMap() {
       });
     }
 
+    if (showVessels && VESSELS.length > 0) {
+      list.push({
+        id: "vessels",
+        color: "#ffffff",
+        radius: [4, 8],
+        opacity: 1,
+        strokeColor: "#00b7e8",
+        popupTitle: "Ocean Warrior vessel",
+        popupFields: [
+          { key: "name", label: "Vessel" },
+          { key: "status", label: "Status" },
+          { key: "position", label: "Position" },
+          { key: "fix", label: "Position fix" },
+          { key: "note", label: "" },
+        ],
+        data: {
+          type: "FeatureCollection",
+          features: VESSELS.map((v) => ({
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [v.longitude, v.latitude],
+            },
+            properties: {
+              name: v.name,
+              status: v.status === "in_port" ? "In port" : v.status === "under_way" ? "Under way" : "Unknown",
+              position: `${v.latitude.toFixed(3)}°N, ${v.longitude.toFixed(3)}°E`,
+              fix: v.timestampUtc ?? "No live feed connected",
+              note: v.note,
+            },
+          })),
+        },
+      });
+    }
+
     return list;
-  }, [showArgo, showBuoys, argo.data, ndbc.data]);
+  }, [showArgo, showBuoys, showVessels, argo.data, ndbc.data]);
 
   const polygons = useMemo(() => {
     if (!showMpa) return [] as PolygonOverlay[];
@@ -255,155 +293,59 @@ export default function ExploreMap() {
         className="absolute inset-0 h-full w-full"
       />
 
-      {/* ---------------------------------------------------------- drawer -- */}
-      <div className="absolute left-0 top-14 z-20 max-h-[calc(100dvh-11rem)] w-[min(90vw,340px)] overflow-y-auto p-4">
+      {/* ---------------------------------------------------------- drawer --
+          Ordered by what makes this platform distinctive, not by dataset size.
+          Ocean Warrior's own layers sit at the top where they are visible
+          without scrolling; the scientific rasters, which are context, sit
+          below and collapse away. */}
+      <div className="absolute left-0 top-14 z-20 max-h-[calc(100dvh-10rem)] w-[min(90vw,330px)] overflow-y-auto p-4">
         <button
           onClick={() => setDrawerOpen((o) => !o)}
           aria-expanded={drawerOpen}
           className="glass mb-2 flex w-full items-center justify-between rounded-sm px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ice"
         >
           Layers
-          <span aria-hidden className={drawerOpen ? "rotate-45" : ""}>
-            +
-          </span>
+          <span aria-hidden className={drawerOpen ? "rotate-45" : ""}>+</span>
         </button>
 
         {drawerOpen && (
           <div className="glass rounded-sm">
-            {/* --------------------------------------------- base layer -- */}
-            <div className="p-4">
-              <p className="eyebrow mb-1">Base layer</p>
-              <p className="mb-3 text-[10px] leading-relaxed text-dim">
-                One at a time — overlapping scientific colour scales cannot be
-                read.
-              </p>
+            <LayerGroup title="Ocean Warrior" accent="#00b7e8" defaultOpen>
+              <LayerToggle
+                label="Expedition routes"
+                checked={showExpeditions}
+                onChange={setShowExpeditions}
+                swatch="#4fd8ff"
+                hint="Eight legs, each a different colour. Click a leg to identify it."
+              />
+              <LayerToggle
+                label="Vessel positions"
+                checked={showVessels}
+                onChange={setShowVessels}
+                swatch="#ffffff"
+                badge="Demo"
+                count={VESSELS.length}
+                hint="No live tracker feed is connected. The vessel is shown at its home port so the interface can demonstrate how a live position will appear."
+              />
+              <LayerToggle
+                label="Expedition observations"
+                checked={false}
+                onChange={() => {}}
+                disabled
+                badge="Soon"
+                hint="CTD profiles, water samples and eDNA. Schema built; no measurements collected yet."
+              />
+            </LayerGroup>
 
-              {BASE_GROUPS.map(({ group, layers }) => (
-                <div key={group} className="mb-3">
-                  <p className="mb-1 text-[9px] uppercase tracking-[0.14em] text-dim">
-                    {group}
-                  </p>
-                  <ul className="space-y-0.5">
-                    {layers.map(({ key, blurb }) => {
-                      const def = GIBS_LAYERS[key];
-                      const active = key === layerKey;
-                      return (
-                        <li key={key}>
-                          <button
-                            onClick={() => setLayerKey(key)}
-                            aria-pressed={active}
-                            className={`w-full rounded-sm px-3 py-2 text-left transition-colors duration-200 ${
-                              active
-                                ? "bg-cyan/10 text-cyan-bright"
-                                : "text-muted hover:bg-white/[0.03] hover:text-ice"
-                            }`}
-                          >
-                            <span className="block text-[13px]">{def.label}</span>
-                            <span className="mt-0.5 block text-[10px] leading-snug text-dim">
-                              {blurb}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            {/* ------------------------------- ice annual min / max jump -- */}
-            {layerKey === "seaIceMur" && iceYears.length > 0 && (
-              <div className="border-t border-[var(--hairline)] p-4">
-                <p className="eyebrow mb-1">Annual extremes</p>
-                <p className="mb-3 text-[10px] leading-relaxed text-dim">
-                  Jump to the exact day of each year&rsquo;s greatest and least
-                  Arctic ice, taken from the NSIDC record.
-                </p>
-
-                <div className="mb-3 flex gap-1">
-                  {(["min", "max"] as const).map((k) => (
-                    <button
-                      key={k}
-                      onClick={() =>
-                        iceYear ? applyIceExtreme(iceYear, k) : setIceKind(k)
-                      }
-                      aria-pressed={iceKind === k}
-                      className={`flex-1 rounded-sm border px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                        iceKind === k
-                          ? "border-cyan bg-cyan/10 text-cyan-bright"
-                          : "border-[var(--hairline)] text-muted hover:text-ice"
-                      }`}
-                    >
-                      {k === "min" ? "Minimum" : "Maximum"}
-                    </button>
-                  ))}
-                </div>
-
-                <label htmlFor="ice-year-jump" className="sr-only">
-                  Year
-                </label>
-                <input
-                  id="ice-year-jump"
-                  type="range"
-                  min={0}
-                  max={iceYears.length - 1}
-                  step={1}
-                  value={
-                    iceYear ? Math.max(0, iceYears.indexOf(iceYear)) : iceYears.length - 1
-                  }
-                  onChange={(e) =>
-                    applyIceExtreme(iceYears[Number(e.target.value)], iceKind)
-                  }
-                  className="w-full accent-cyan"
-                />
-                <div className="mt-1 flex justify-between text-[10px] text-dim tnum">
-                  <span>{iceYears[0]}</span>
-                  <span className="text-cyan-bright">
-                    {activeExtreme ? activeExtreme.year : "—"}
-                  </span>
-                  <span>{iceYears[iceYears.length - 1]}</span>
-                </div>
-
-                {activeExtreme && (
-                  <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                    <span className="tnum text-ice">
-                      {activeExtreme.extent.toFixed(2)}
-                    </span>{" "}
-                    million km² on {activeExtreme.date}
-                  </p>
-                )}
-
-                <p className="mt-3 text-[10px] leading-relaxed text-dim">
-                  Mappable years start in 2002. For 1979 onwards, see the{" "}
-                  <a
-                    href={asset("/arctic/")}
-                    className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright"
-                  >
-                    Arctic time machine
-                  </a>
-                  , which uses a true polar projection.
-                </p>
-              </div>
-            )}
-
-            {/* ---------------------------------------------- overlays -- */}
-            <div className="border-t border-[var(--hairline)] p-4">
-              <p className="eyebrow mb-1">Overlays</p>
-              <p className="mb-3 text-[10px] leading-relaxed text-dim">
-                Stack freely on top of the base layer.
-              </p>
-
-              <p className="mb-1.5 text-[9px] uppercase tracking-[0.14em] text-dim">
-                Observing systems
-              </p>
-              <Toggle
+            <LayerGroup title="Observing systems" accent="#4fd8ff" defaultOpen>
+              <LayerToggle
                 label="Argo floats"
                 checked={showArgo}
                 onChange={setShowArgo}
                 count={argo.data?.count}
                 swatch="#4fd8ff"
               />
-              <Toggle
+              <LayerToggle
                 label="NOAA buoys"
                 checked={showBuoys}
                 onChange={setShowBuoys}
@@ -411,7 +353,7 @@ export default function ExploreMap() {
                 swatch="#ffb547"
               />
               {(showArgo || showBuoys) && (
-                <p className="mb-3 mt-1 text-[10px] leading-relaxed text-dim">
+                <p className="mt-1 text-[10px] leading-relaxed text-dim">
                   In-situ measurements. Empty ocean means no instrument there,
                   not calm water.
                   {argo.data && showArgo
@@ -419,74 +361,132 @@ export default function ExploreMap() {
                     : ""}
                 </p>
               )}
+            </LayerGroup>
 
-              <p className="mb-1.5 mt-4 text-[9px] uppercase tracking-[0.14em] text-dim">
-                Conservation
-              </p>
-              <Toggle
+            <LayerGroup title="Conservation" accent="#5fe0c0" defaultOpen={false}>
+              <LayerToggle
                 label="Marine protected areas"
                 checked={showMpa}
                 onChange={setShowMpa}
                 swatch="#5fe0c0"
+                hint="A boundary shows legal designation, not enforcement or outcome."
               />
-              {showMpa && (
-                <p className="mb-3 mt-1 text-[10px] leading-relaxed text-dim">
-                  A boundary shows legal designation, not enforcement or
-                  outcome. Protection levels vary enormously — check the IUCN
-                  category and no-take status.
-                </p>
+            </LayerGroup>
+
+            <LayerGroup
+              title="Ocean data"
+              subtitle="One at a time — overlapping scientific colour scales cannot be read. Click the active layer again to turn it off."
+              defaultOpen
+            >
+              <BaseLayerOption
+                label="None"
+                blurb="Imagery and bathymetry only"
+                active={layerKey === null}
+                onSelect={() => setLayerKey(null)}
+                onClear={() => setLayerKey(null)}
+              />
+              {BASE_GROUPS.map(({ group, layers }) => (
+                <div key={group} className="mt-2">
+                  <p className="mb-0.5 px-2.5 text-[9px] uppercase tracking-[0.14em] text-dim">
+                    {group}
+                  </p>
+                  {layers.map(({ key, blurb }) => (
+                    <BaseLayerOption
+                      key={key}
+                      label={GIBS_LAYERS[key].label}
+                      blurb={blurb}
+                      active={key === layerKey}
+                      onSelect={() => setLayerKey(key)}
+                      onClear={() => setLayerKey(null)}
+                    />
+                  ))}
+                </div>
+              ))}
+
+              {layerKey === "seaIceMur" && iceYears.length > 0 && (
+                <div className="mt-4 border-t border-[var(--hairline)] pt-3">
+                  <p className="eyebrow mb-1">Annual extremes</p>
+                  <p className="mb-2.5 text-[10px] leading-relaxed text-dim">
+                    Jump to the exact day of each year&rsquo;s greatest and
+                    least Arctic ice, from the NSIDC record.
+                  </p>
+                  <div className="mb-2.5 flex gap-1">
+                    {(["min", "max"] as const).map((k) => (
+                      <button
+                        key={k}
+                        onClick={() =>
+                          iceYear ? applyIceExtreme(iceYear, k) : setIceKind(k)
+                        }
+                        aria-pressed={iceKind === k}
+                        className={`flex-1 rounded-sm border px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                          iceKind === k
+                            ? "border-cyan bg-cyan/10 text-cyan-bright"
+                            : "border-[var(--hairline)] text-muted hover:text-ice"
+                        }`}
+                      >
+                        {k === "min" ? "Minimum" : "Maximum"}
+                      </button>
+                    ))}
+                  </div>
+                  <label htmlFor="ice-year-jump" className="sr-only">Year</label>
+                  <input
+                    id="ice-year-jump"
+                    type="range"
+                    min={0}
+                    max={iceYears.length - 1}
+                    step={1}
+                    value={iceYear ? Math.max(0, iceYears.indexOf(iceYear)) : iceYears.length - 1}
+                    onChange={(e) => applyIceExtreme(iceYears[Number(e.target.value)], iceKind)}
+                    className="w-full accent-cyan"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] text-dim tnum">
+                    <span>{iceYears[0]}</span>
+                    <span className="text-cyan-bright">
+                      {activeExtreme ? activeExtreme.year : "—"}
+                    </span>
+                    <span>{iceYears[iceYears.length - 1]}</span>
+                  </div>
+                  {activeExtreme && (
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                      <span className="tnum text-ice">
+                        {activeExtreme.extent.toFixed(2)}
+                      </span>{" "}
+                      million km² on {activeExtreme.date}
+                    </p>
+                  )}
+                  <p className="mt-2 text-[10px] leading-relaxed text-dim">
+                    Mappable years start in 2002. For 1979 onwards see the{" "}
+                    <a href={asset("/arctic/")} className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright">
+                      Arctic time machine
+                    </a>.
+                  </p>
+                </div>
               )}
 
-              <p className="mb-1.5 mt-4 text-[9px] uppercase tracking-[0.14em] text-dim">
-                Ocean Warrior
-              </p>
-              <Toggle
-                label="Expedition routes"
-                checked={showExpeditions}
-                onChange={setShowExpeditions}
-                swatch="#00b7e8"
-              />
-
-              {/* The whole point of the platform, and honestly empty. */}
-              <div className="mt-2 rounded-sm border border-[var(--hairline)] bg-[rgba(0,183,232,0.04)] p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[13px] text-muted">
-                    Expedition observations
-                  </span>
-                  <span className="shrink-0 rounded-[2px] border border-cyan/40 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-cyan-bright">
-                    Coming soon
-                  </span>
+              {layer && (
+                <div className="mt-4 border-t border-[var(--hairline)] pt-3">
+                  <label htmlFor="opacity" className="eyebrow mb-2 block">
+                    Layer opacity
+                  </label>
+                  <input
+                    id="opacity"
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={opacity}
+                    onChange={(e) => setOpacity(Number(e.target.value))}
+                    className="w-full accent-cyan"
+                  />
                 </div>
-                <p className="mt-1.5 text-[10px] leading-relaxed text-dim">
-                  Temperature and salinity profiles, water samples and eDNA,
-                  measured from the vessel. The schema is built and validated;
-                  no measurements have been collected yet.
-                </p>
-              </div>
-            </div>
-
-            {/* --------------------------------------------- appearance -- */}
-            <div className="border-t border-[var(--hairline)] p-4">
-              <label htmlFor="opacity" className="eyebrow mb-2 block">
-                Base layer opacity
-              </label>
-              <input
-                id="opacity"
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={opacity}
-                onChange={(e) => setOpacity(Number(e.target.value))}
-                className="w-full accent-cyan"
-              />
-            </div>
+              )}
+            </LayerGroup>
           </div>
         )}
       </div>
 
       {/* --------------------------------------------------------- regions -- */}
-      <div className="absolute right-0 top-14 z-20 w-[min(88vw,230px)] p-4">
+      <div className="absolute right-0 top-14 z-20 w-[min(88vw,220px)] p-4">
         <div className="glass rounded-sm p-3">
           <p className="eyebrow mb-2">Region</p>
           <ul className="space-y-0.5">
@@ -510,143 +510,102 @@ export default function ExploreMap() {
       </div>
 
       {/* ------------------------------------------------------------ time -- */}
-      <div className="absolute inset-x-0 bottom-0 z-20 p-4">
-        <div className="glass-strong mx-auto max-w-4xl rounded-sm p-4">
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
-            <div>
-              <p className="text-sm text-ice">
-                {layer.label}
-                {activeExtreme && layerKey === "seaIceMur" && (
-                  <span className="ml-2 text-xs text-cyan-bright">
-                    {activeExtreme.year} annual{" "}
-                    {activeExtreme.kind === "min" ? "minimum" : "maximum"}
-                  </span>
+      {layer && (
+        <div className="absolute inset-x-0 bottom-0 z-20 p-4">
+          <div className="glass-strong mx-auto max-w-4xl rounded-sm p-4">
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+              <div>
+                <p className="text-sm text-ice">
+                  {layer.label}
+                  {activeExtreme && layerKey === "seaIceMur" && (
+                    <span className="ml-2 text-xs text-cyan-bright">
+                      {activeExtreme.year} annual{" "}
+                      {activeExtreme.kind === "min" ? "minimum" : "maximum"}
+                    </span>
+                  )}
+                </p>
+                {meta && (
+                  <p className="mt-0.5 text-[11px] text-dim">
+                    {meta.sourceOrg}
+                    {meta.spatialResolution ? ` · ${meta.spatialResolution}` : ""}
+                    {meta.latency ? ` · latency ${meta.latency}` : ""}
+                  </p>
                 )}
+              </div>
+              <div className="flex items-center gap-2">
+                {meta && <StatusBadge status={meta.status} />}
+                <span className="tnum text-sm text-cyan-bright">
+                  {effectiveDate}
+                </span>
+                <button
+                  onClick={() => setLayerKey(null)}
+                  className="rounded-sm border border-[var(--hairline-bright)] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted transition-colors hover:border-cyan hover:text-cyan-bright"
+                >
+                  Turn off
+                </button>
+              </div>
+            </div>
+
+            <label htmlFor="explore-date" className="sr-only">Date</label>
+            <input
+              id="explore-date"
+              type="date"
+              value={date}
+              min={layer.start}
+              max={layer.end}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setIceYear(null);
+              }}
+              className="w-full rounded-sm border border-[var(--hairline)] bg-[rgba(7,20,36,0.6)] px-3 py-2 text-sm text-ice focus:border-cyan focus:outline-none"
+            />
+
+            {(layerKey === "sst" || layerKey === "sstAnomaly") && (
+              <p className="mt-2 text-[11px] leading-relaxed text-dim">
+                Sea surface temperature is undefined beneath sea ice, so ice
+                concentration for the same date is drawn underneath — the
+                colour at the poles is ice, not missing data.
               </p>
-              {meta && (
-                <p className="mt-0.5 text-[11px] text-dim">
-                  {meta.sourceOrg}
-                  {meta.spatialResolution ? ` · ${meta.spatialResolution}` : ""}
-                  {meta.latency ? ` · latency ${meta.latency}` : ""}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {meta && <StatusBadge status={meta.status} />}
-              <span className="tnum text-sm text-cyan-bright">
-                {effectiveDate}
-              </span>
-            </div>
+            )}
+
+            <p className="mt-1.5 text-[11px] leading-relaxed text-dim">
+              Web Mercator cannot represent latitudes beyond 85&deg;, so the
+              polar caps are shaded rather than measured. For a true polar
+              projection see the{" "}
+              <a href={asset("/arctic/")} className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright">
+                Arctic view
+              </a>.
+            </p>
+
+            {outsideCoverage && (
+              <p className="mt-2 text-[11px] text-amber" role="status">
+                This layer has no data for {date}. Showing {effectiveDate}, the
+                nearest date within {layer.start?.slice(0, 4)}–{layer.end?.slice(0, 4)}.
+              </p>
+            )}
+
+            {layer.legend && (
+              <>
+                <div className="mt-3 flex h-2 overflow-hidden rounded-full">
+                  {layer.legend.map((stop) => (
+                    <div key={stop.label} className="flex-1" style={{ background: stop.color }} />
+                  ))}
+                </div>
+                <div className="mt-1 flex justify-between text-[10px] text-dim tnum">
+                  {layer.legend.map((stop) => (
+                    <span key={stop.label}>{stop.label}</span>
+                  ))}
+                </div>
+                {layer.legendUnit && (
+                  <p className="mt-1 text-center text-[10px] text-dim">
+                    {layer.legendUnit}
+                  </p>
+                )}
+              </>
+            )}
           </div>
-
-          <label htmlFor="explore-date" className="sr-only">
-            Date
-          </label>
-          <input
-            id="explore-date"
-            type="date"
-            value={date}
-            min={layer.start}
-            max={layer.end}
-            onChange={(e) => {
-              setDate(e.target.value);
-              setIceYear(null);
-            }}
-            className="w-full rounded-sm border border-[var(--hairline)] bg-[rgba(7,20,36,0.6)] px-3 py-2 text-sm text-ice focus:border-cyan focus:outline-none"
-          />
-
-          {(layerKey === "sst" || layerKey === "sstAnomaly") && (
-            <p className="mt-2 text-[11px] leading-relaxed text-dim">
-              Sea surface temperature is undefined beneath sea ice, so ice
-              concentration for the same date is drawn underneath — the white
-              at the poles is ice, not missing data.
-            </p>
-          )}
-
-          <p className="mt-1.5 text-[11px] leading-relaxed text-dim">
-            This map uses Web Mercator, which cannot represent latitudes beyond
-            85&deg;. The polar caps are shaded rather than measured. For a true
-            polar projection see the{" "}
-            <a
-              href={asset("/arctic/")}
-              className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright"
-            >
-              Arctic view
-            </a>
-            .
-          </p>
-
-          {outsideCoverage && (
-            <p className="mt-2 text-[11px] text-amber" role="status">
-              This layer has no data for {date}. Showing {effectiveDate}, the
-              nearest date within {layer.start?.slice(0, 4)}–
-              {layer.end?.slice(0, 4)}.
-            </p>
-          )}
-
-          {layer.legend && (
-            <>
-              <div className="mt-3 flex h-2 overflow-hidden rounded-full">
-                {layer.legend.map((stop) => (
-                  <div
-                    key={stop.label}
-                    className="flex-1"
-                    style={{ background: stop.color }}
-                  />
-                ))}
-              </div>
-              <div className="mt-1 flex justify-between text-[10px] text-dim tnum">
-                {layer.legend.map((stop) => (
-                  <span key={stop.label}>{stop.label}</span>
-                ))}
-              </div>
-              {layer.legendUnit && (
-                <p className="mt-1 text-center text-[10px] text-dim">
-                  {layer.legendUnit}
-                </p>
-              )}
-            </>
-          )}
         </div>
-      </div>
+      )}
     </div>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-  count,
-  swatch,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  count?: number;
-  swatch?: string;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-2.5 py-1 text-[13px] text-muted transition-colors hover:text-ice">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="accent-cyan"
-      />
-      {swatch && (
-        <span
-          aria-hidden
-          className="h-2 w-2 shrink-0 rounded-full"
-          style={{ background: swatch }}
-        />
-      )}
-      <span className="flex-1">{label}</span>
-      {count != null && (
-        <span className="text-[10px] text-dim tnum">
-          {count.toLocaleString()}
-        </span>
-      )}
-    </label>
   );
 }
