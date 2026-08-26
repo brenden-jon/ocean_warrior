@@ -162,18 +162,20 @@ export default function OceanGlobe({
     }
 
     /*
-     * Readiness is polled, not awaited.
+     * Readiness is polled as well as awaited.
      *
-     * Waiting on MapLibre's `load` event does not work reliably here: on the
-     * deployed site the map reaches `isStyleLoaded() === true` while `load`
-     * never fires at all (verified in the browser — the one-time listener was
-     * still pending with the style fully loaded). `styledata` is no better,
-     * because it stops firing once the style settles, and can deliver its last
-     * event a tick before `isStyleLoaded()` flips true.
+     * `load` alone is not enough: if the style is already up by the time this
+     * handler attaches — which happens with a warm cache — MapLibre will not
+     * replay the event, and the component would sit forever with ready=false,
+     * rendering its base style and nothing else.
      *
-     * When this goes wrong the component renders its base style and nothing
-     * else — no data layer, no routes, no overlays — which is a silent, total
-     * failure. A short poll is unglamorous and it always terminates.
+     * Note that in a BACKGROUND tab neither path fires promptly, because
+     * requestAnimationFrame is throttled and MapLibre's render loop is what
+     * completes style loading. That is correct behaviour, not a fault: there is
+     * nothing to draw for a page nobody is looking at, and it resolves as soon
+     * as the tab is shown. The poll therefore waits indefinitely rather than
+     * forcing readiness on a timer — adding layers to a style that genuinely
+     * has not loaded would throw.
      */
     let readyFired = false;
     let pollTimer: number | undefined;
@@ -193,13 +195,11 @@ export default function OceanGlobe({
         markReady();
         return;
       }
-      // ~20 seconds, then proceed regardless: adding layers to a still-settling
-      // style is recoverable, rendering an empty map is not.
-      if (attempt > 160) {
-        markReady();
-        return;
-      }
-      pollTimer = window.setTimeout(() => pollForStyle(attempt + 1), 125);
+      // Back off from 125 ms to 1 s so a backgrounded tab costs nothing while
+      // it waits. No timeout: readiness is only ever declared once the style
+      // really is loaded.
+      const delay = attempt < 40 ? 125 : 1000;
+      pollTimer = window.setTimeout(() => pollForStyle(attempt + 1), delay);
     };
 
     instance.once("load", markReady);
