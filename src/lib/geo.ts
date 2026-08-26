@@ -74,9 +74,11 @@ export function legToLineFeatures(
         expeditionName: expedition.name,
         leg: legId,
         legName: leg.name,
+        legDescription: leg.description,
         fidelity: expedition.fidelity,
         fidelityLabel: expedition.fidelityLabel,
-        accent: expedition.accent,
+        // Per-leg colour so each voyage is separately identifiable.
+        accent: leg.accent ?? expedition.accent,
         dashed: expedition.dashed,
       },
     })),

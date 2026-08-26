@@ -75,9 +75,9 @@ export function buildBaseStyle(options?: {
                 type: "Polygon",
                 coordinates: [
                   [
-                    [-180, 84.5], [-90, 84.5], [0, 84.5], [90, 84.5],
-                    [180, 84.5], [180, 89.99], [90, 89.99], [0, 89.99],
-                    [-90, 89.99], [-180, 89.99], [-180, 84.5],
+                    [-180, 85.0], [-90, 85.0], [0, 85.0], [90, 85.0],
+                    [180, 85.0], [180, 89.99], [90, 89.99], [0, 89.99],
+                    [-90, 89.99], [-180, 89.99], [-180, 85.0],
                   ],
                 ],
               },
@@ -89,9 +89,9 @@ export function buildBaseStyle(options?: {
                 type: "Polygon",
                 coordinates: [
                   [
-                    [-180, -84.5], [-90, -84.5], [0, -84.5], [90, -84.5],
-                    [180, -84.5], [180, -89.99], [90, -89.99], [0, -89.99],
-                    [-90, -89.99], [-180, -89.99], [-180, -84.5],
+                    [-180, -85.0], [-90, -85.0], [0, -85.0], [90, -85.0],
+                    [180, -85.0], [180, -89.99], [90, -89.99], [0, -89.99],
+                    [-90, -89.99], [-180, -89.99], [-180, -85.0],
                   ],
                 ],
               },
@@ -124,17 +124,6 @@ export function buildBaseStyle(options?: {
         },
       },
       {
-        // Above the base imagery so it hides the pole smear, below every data
-        // layer so it never covers a real measurement.
-        id: "polar-cap",
-        type: "fill",
-        source: "polar-cap",
-        paint: {
-          "fill-color": "#dce9f2",
-          "fill-opacity": 0.9,
-        },
-      },
-      {
         id: "coastlines",
         type: "raster",
         source: "coastlines",
@@ -150,6 +139,24 @@ export function buildBaseStyle(options?: {
         source: "graticule",
         layout: { visibility: showGraticule ? "visible" : "none" },
         paint: { "raster-opacity": 0.14 },
+      },
+      {
+        /*
+         * Must sit ABOVE the data rasters, not below them. The starburst is
+         * produced by the data layer's own top tile row being stretched across
+         * the cap, so a fill underneath it hides nothing.
+         *
+         * Data layers are inserted before "coastlines", which puts them below
+         * this. Expedition routes are added afterwards and draw on top, which
+         * is correct — a route crossing the pole should still be visible.
+         */
+        id: "polar-cap",
+        type: "fill",
+        source: "polar-cap",
+        paint: {
+          "fill-color": "#e8f1f7",
+          "fill-opacity": 0.94,
+        },
       },
     ],
   };

@@ -20,10 +20,10 @@ export default function SiteHeader() {
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-6 px-6 py-3 sm:px-10 lg:px-16">
           <Link href="/" className="group flex items-baseline gap-2.5">
             <span className="display text-base leading-none text-ice transition-colors duration-200 group-hover:text-cyan-bright">
-              Planetary Pulse
-            </span>
-            <span className="hidden text-[10px] uppercase tracking-[0.18em] text-dim sm:inline">
               Ocean Warrior
+            </span>
+            <span className="hidden text-[10px] uppercase tracking-[0.18em] text-cyan-bright/80 sm:inline">
+              Planetary Pulse
             </span>
           </Link>
 

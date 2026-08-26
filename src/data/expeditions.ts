@@ -37,6 +37,8 @@ export interface ExpeditionLeg {
   id: string;
   name: string;
   description: string;
+  /** Distinct colour so each leg is separately identifiable on the map. */
+  accent: string;
   waypoints: RouteWaypoint[];
 }
 
@@ -66,21 +68,21 @@ const via = (lat: number, lon: number): RouteWaypoint => ({
    1. Arctic / North Atlantic — published itinerary concept
    ===========================================================================
    Port calls confirmed from Ocean Warrior's published expedition map
-   (global-warrior.com/expeditions/ocean-warrior) and a published itinerary
-   description. The map shows TWO distinct loops, which is why this is modelled
-   as two legs rather than the single chain described in the written brief.
+   (global-warrior.com/expeditions/ocean-warrior) and its published description
+   of the Resolute Expeditions as eight legs. Each leg is coloured separately
+   because participants join individual legs, not the whole circuit.
    =========================================================================== */
 
 const arcticNorthAtlantic: ExpeditionRecord = {
   slug: "arctic-north-atlantic",
-  name: "Arctic & North Atlantic Transect",
-  status: "concept",
+  name: "The Resolute Expeditions",
+  status: "active",
   fidelity: "published_itinerary",
-  fidelityLabel: "Published itinerary concept — illustrative route, not a GPS track",
-  startDate: null,
+  fidelityLabel: "Published itinerary — illustrative route, not a GPS track",
+  startDate: "2025-06-01",
   endDate: null,
   vessel: null,
-  region: "Svalbard, Norwegian Sea, North Atlantic, Baffin Bay, Canadian Arctic",
+  region: "Svalbard, North Atlantic, Greenland, Canadian Arctic",
   accent: "#00b7e8",
   dashed: false,
 
@@ -92,7 +94,8 @@ const arcticNorthAtlantic: ExpeditionRecord = {
     "the sea ice from below, a process satellites cannot see because it happens " +
     "under the surface. A vessel crossing this gateway repeatedly, in the same " +
     "places, in successive years, can measure the temperature and salinity of " +
-    "that inflow directly.",
+    "that inflow directly. That is the point of repeating the same circuit " +
+    "annually for a decade rather than sailing it once.",
 
   whatWeAlreadyKnow: [
     {
@@ -111,7 +114,7 @@ const arcticNorthAtlantic: ExpeditionRecord = {
 
   whatWeWillMeasure: [
     "CTD profiles (temperature, salinity, depth) on a repeated transect",
-    "Surface temperature and salinity underway along the full route",
+    "Surface temperature and salinity underway along the full circuit",
     "Water samples for nutrient and carbonate chemistry",
     "eDNA samples at fixed stations for biodiversity baselines",
     "Visual marine mammal and seabird observations on standardised watches",
@@ -119,67 +122,112 @@ const arcticNorthAtlantic: ExpeditionRecord = {
 
   scientificPartners: [],
 
+  /*
+   * Eight legs, following the publicly described sequence: Svalbard to
+   * Plymouth, then Iceland, South Greenland, Resolute Bay via Baffin Island,
+   * back to Nuuk, on to West Greenland, Narsarsuaq, Reykjavík, and finally
+   * Plymouth via the Faroes.
+   *
+   * Each leg carries its own colour so the circuit can be read as a sequence
+   * of separately identifiable voyages rather than one undifferentiated line —
+   * participants join individual legs, not the whole circuit.
+   */
   legs: [
     {
       id: "LEG-01",
-      name: "Svalbard – North Sea – Iceland – Svalbard",
-      description:
-        "The eastern loop shown in red on Ocean Warrior's published expedition map: " +
-        "south from Svalbard along the Norwegian Sea, into the North Sea and the " +
-        "Thames, west along the Channel, then northwest to Iceland and back north " +
-        "past east Greenland to Svalbard.",
+      name: "Svalbard → Plymouth",
+      description: "South from the high Arctic along the Norwegian Sea and into the North Sea.",
+      accent: "#7de3ff",
       waypoints: [
         port("Longyearbyen", 78.2232, 15.6469, "Svalbard, Norway"),
-        via(75.5, 14.5),
-        via(71.5, 13.0),
-        via(66.0, 7.5),
-        via(61.5, 3.0),
-        via(57.5, 2.0),
-        via(53.5, 2.5),
-        via(51.75, 1.6),
-        port("London", 51.5074, -0.0754, "United Kingdom"),
-        via(51.4, 1.45),
-        via(50.4, -1.6),
+        via(75.5, 14.5), via(71.5, 13.0), via(66.0, 7.5), via(61.5, 3.0),
+        via(57.5, 2.0), via(53.5, 2.5), via(51.4, 1.45), via(50.4, -1.6),
         port("Plymouth", 50.3714, -4.1422, "United Kingdom"),
-        via(49.6, -8.5),
-        via(54.0, -15.0),
-        via(60.0, -19.5),
-        port("Reykjavík", 64.1466, -21.9426, "Iceland"),
-        via(66.8, -24.5),
-        via(70.5, -17.0),
-        via(75.0, -5.0),
-        via(77.5, 7.0),
-        port("Longyearbyen", 78.2232, 15.6469, "Svalbard, Norway"),
       ],
     },
     {
       id: "LEG-02",
-      name: "Plymouth – Iceland – Greenland – Resolute Bay",
-      description:
-        "The western loop shown in green on the published map: across the North " +
-        "Atlantic to Iceland and southern Greenland, north along the Greenland " +
-        "coast through Baffin Bay, and west into the Canadian Arctic Archipelago " +
-        "to Resolute Bay.",
+      name: "Plymouth → Reykjavík",
+      description: "Across the North Atlantic to Iceland.",
+      accent: "#4fd8ff",
       waypoints: [
         port("Plymouth", 50.3714, -4.1422, "United Kingdom"),
-        via(51.5, -11.0),
-        via(57.0, -17.0),
-        via(62.0, -20.5),
+        via(51.5, -11.0), via(57.0, -17.0), via(62.0, -20.5),
         port("Reykjavík", 64.1466, -21.9426, "Iceland"),
-        via(63.0, -28.0),
-        via(61.8, -38.0),
+      ],
+    },
+    {
+      id: "LEG-03",
+      name: "Reykjavík → Narsarsuaq",
+      description: "West across the Irminger Sea to southern Greenland.",
+      accent: "#3fc8f0",
+      waypoints: [
+        port("Reykjavík", 64.1466, -21.9426, "Iceland"),
+        via(63.0, -28.0), via(61.8, -38.0),
         port("Narsarsuaq", 61.1605, -45.426, "Greenland"),
-        via(59.8, -48.5),
-        via(62.0, -52.0),
-        port("Nuuk", 64.1836, -51.7214, "Greenland"),
-        via(67.0, -54.5),
-        via(70.5, -55.8),
-        port("Upernavik", 72.7868, -56.1549, "Greenland"),
-        via(74.2, -59.0),
-        via(74.6, -68.0),
-        via(74.4, -80.0),
-        via(74.5, -90.0),
+      ],
+    },
+    {
+      id: "LEG-04",
+      name: "Narsarsuaq → Resolute Bay",
+      description:
+        "North through Davis Strait and Baffin Bay, then west into the Canadian Arctic Archipelago.",
+      accent: "#35b8e0",
+      waypoints: [
+        port("Narsarsuaq", 61.1605, -45.426, "Greenland"),
+        via(59.8, -48.5), via(62.0, -52.0), via(66.0, -57.0),
+        port("Baffin Island", 68.7, -66.5, "Nunavut, Canada"),
+        via(72.0, -70.0), via(74.6, -76.0), via(74.4, -84.0), via(74.5, -90.0),
         port("Resolute Bay", 74.6973, -94.8297, "Nunavut, Canada"),
+      ],
+    },
+    {
+      id: "LEG-05",
+      name: "Resolute Bay → Nuuk",
+      description: "East out of the archipelago and south down the Greenland coast.",
+      accent: "#2ba8d0",
+      waypoints: [
+        port("Resolute Bay", 74.6973, -94.8297, "Nunavut, Canada"),
+        via(74.4, -86.0), via(74.6, -74.0), via(70.0, -60.0), via(66.0, -55.0),
+        port("Nuuk", 64.1836, -51.7214, "Greenland"),
+      ],
+    },
+    {
+      id: "LEG-06",
+      name: "Nuuk → Upernavik",
+      description: "North along the west Greenland coast.",
+      accent: "#2298c0",
+      waypoints: [
+        port("Nuuk", 64.1836, -51.7214, "Greenland"),
+        via(67.0, -54.5), via(70.5, -55.8),
+        port("Upernavik", 72.7868, -56.1549, "Greenland"),
+      ],
+    },
+    {
+      id: "LEG-07",
+      name: "Upernavik → Narsarsuaq",
+      description: "South again the length of the Greenland coast.",
+      accent: "#1f88ae",
+      waypoints: [
+        port("Upernavik", 72.7868, -56.1549, "Greenland"),
+        via(69.0, -55.0), via(65.0, -53.0), via(62.0, -50.0),
+        port("Narsarsuaq", 61.1605, -45.426, "Greenland"),
+      ],
+    },
+    {
+      id: "LEG-08",
+      name: "Narsarsuaq → Plymouth via the Faroes",
+      description:
+        "The closing leg: back to Iceland, then southeast past the Faroe Islands to Plymouth.",
+      accent: "#1a7898",
+      waypoints: [
+        port("Narsarsuaq", 61.1605, -45.426, "Greenland"),
+        via(61.8, -38.0), via(63.0, -28.0),
+        port("Reykjavík", 64.1466, -21.9426, "Iceland"),
+        via(63.5, -14.0),
+        port("Tórshavn, Faroe Islands", 62.0079, -6.7719, "Faroe Islands"),
+        via(59.0, -5.0), via(55.0, -6.5), via(51.0, -6.0),
+        port("Plymouth", 50.3714, -4.1422, "United Kingdom"),
       ],
     },
   ],
@@ -187,11 +235,15 @@ const arcticNorthAtlantic: ExpeditionRecord = {
   stations: [],
 
   sourceNote:
-    "Port calls are taken from Ocean Warrior's published expedition map and a " +
-    "published itinerary description. The line between ports is drawn by " +
-    "Planetary Pulse to keep an illustrative path in navigable water; it is not " +
-    "a recorded vessel track, not a planned course, and carries no navigational " +
-    "meaning. Dates, vessel and partners are not yet published.",
+    "Ocean Warrior publicly describes the Resolute Expeditions as eight legs of " +
+    "nine to thirty-one days, covering roughly 10,000 nautical miles per circuit, " +
+    "with three vessels sailing about 20,000 nautical miles in total, beginning " +
+    "in June 2025 and repeating annually for ten years. The port sequence used " +
+    "here follows that published description and the expedition map on the " +
+    "Ocean Warrior website. The line between ports is drawn by Planetary Pulse " +
+    "to keep an illustrative path in navigable water; it is not a recorded " +
+    "vessel track, not a planned course, and carries no navigational meaning. " +
+    "Exact leg dates and vessel assignments are not published.",
 };
 
 /* ===========================================================================
@@ -321,6 +373,7 @@ const svalbard2027: ExpeditionRecord = {
     {
       id: "LEG-01",
       name: "Fram Strait transect and Nordaustlandet loop",
+      accent: "#4fd8ff",
       description:
         "A demonstration route: west from Longyearbyen across the Fram Strait " +
         "towards the Greenland ice edge, north along the marginal ice zone, then " +
@@ -401,6 +454,7 @@ const gulfOfCalifornia: ExpeditionRecord = {
     {
       id: "LEG-01",
       name: "La Paz – Gulf islands – Cabo Pulmo",
+      accent: "#ffb547",
       description:
         "A short demonstration transect crossing protected and unprotected water.",
       waypoints: [
@@ -474,6 +528,7 @@ const southernOcean: ExpeditionRecord = {
     {
       id: "LEG-01",
       name: "South Georgia – Scotia Sea – Antarctic Peninsula",
+      accent: "#ffb547",
       description: "A concept transect across the Scotia Sea.",
       waypoints: [
         port("Grytviken, South Georgia", -54.2814, -36.5089),

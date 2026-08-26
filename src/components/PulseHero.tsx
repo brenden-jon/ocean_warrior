@@ -55,10 +55,22 @@ export default function PulseHero() {
       <div className="pointer-events-none absolute inset-0 flex items-center">
         <div className="mx-auto w-full max-w-[1600px] px-6 sm:px-10 lg:px-16">
           <div className="pointer-events-auto max-w-xl">
-            <p className="eyebrow fade-up mb-5">Ocean Warrior</p>
+            {/* Ocean Warrior is the organisation; Planetary Pulse is one of
+                its outputs. The type scale should say so. */}
+            <p
+              className="display fade-up text-[clamp(1.9rem,4.6vw,3.4rem)] leading-none text-ice"
+              style={{ letterSpacing: "0.03em" }}
+            >
+              Ocean Warrior
+            </p>
+
+            <div
+              className="fade-up mt-4 mb-4 h-px w-24 bg-[var(--hairline-bright)]"
+              style={{ animationDelay: "60ms" }}
+            />
 
             <h1
-              className="display fade-up text-[clamp(3.2rem,9vw,7.5rem)] text-ice"
+              className="display fade-up text-[clamp(2.4rem,6.4vw,5.2rem)] text-cyan-bright"
               style={{ animationDelay: "80ms" }}
             >
               Planetary

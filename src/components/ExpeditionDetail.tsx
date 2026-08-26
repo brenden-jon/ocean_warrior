@@ -111,11 +111,13 @@ export default function ExpeditionDetail({ slug }: { slug: string }) {
           />
           <Fact label="Vessel" value={expedition.vessel ?? "Not published"} />
           <Fact
-            label="Route length"
+            label={km > 0 ? "Route length" : "Legs"}
             value={
               km > 0
                 ? `${Math.round(km).toLocaleString()} km · ${Math.round(km / KM_PER_NAUTICAL_MILE).toLocaleString()} nm`
-                : "Area, not a route"
+                : expedition.legs.length > 0
+                  ? `${expedition.legs.length}`
+                  : "Two 10-day expeditions"
             }
           />
         </dl>
@@ -208,22 +210,36 @@ export default function ExpeditionDetail({ slug }: { slug: string }) {
 
             <p className="eyebrow mb-3 mt-10">Legs</p>
             {expedition.legs.length > 0 ? (
-              <ul className="space-y-4">
-                {expedition.legs.map((leg) => (
-                  <li key={leg.id}>
-                    <p className="text-sm text-ice">{leg.name}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-dim">
-                      {leg.description}
-                    </p>
-                    <p className="mt-1.5 text-[11px] text-muted">
-                      {leg.waypoints
-                        .filter((w) => w.kind === "port")
-                        .map((w) => w.name)
-                        .join(" → ")}
-                    </p>
+              /* Colour swatches match the map exactly, so a leg picked out
+                 here can be found on the globe and vice versa. */
+              <ol className="space-y-4">
+                {expedition.legs.map((leg, i) => (
+                  <li key={leg.id} className="flex gap-3">
+                    <span
+                      aria-hidden
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                      style={{ background: leg.accent }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm text-ice">
+                        <span className="mr-2 text-dim tnum">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        {leg.name}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-dim">
+                        {leg.description}
+                      </p>
+                      <p className="mt-1.5 text-[11px] text-muted">
+                        {leg.waypoints
+                          .filter((w) => w.kind === "port")
+                          .map((w) => w.name)
+                          .join(" → ")}
+                      </p>
+                    </div>
                   </li>
                 ))}
-              </ul>
+              </ol>
             ) : (
               <p className="text-sm text-dim">
                 No route drawn — see the provenance note below.

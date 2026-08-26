@@ -267,7 +267,7 @@ export default function OceanGlobe({
 
     // Clear previous expedition layers.
     for (const expedition of EXPEDITIONS) {
-      for (const suffix of ["route", "route-glow", "ports", "port-labels", "region", "region-line"]) {
+      for (const suffix of ["route", "route-halo", "route-glow", "ports", "port-labels", "region", "region-line"]) {
         const id = `exp-${expedition.slug}-${suffix}`;
         if (instance.getLayer(id)) instance.removeLayer(id);
       }
@@ -545,7 +545,7 @@ function addExpeditionLayers(
       source: `exp-src-${slug}-region`,
       paint: {
         "fill-color": expedition.accent,
-        "fill-opacity": 0.1,
+        "fill-opacity": 0.07,
       },
     });
     instance.addLayer({
@@ -554,9 +554,10 @@ function addExpeditionLayers(
       source: `exp-src-${slug}-region`,
       paint: {
         "line-color": expedition.accent,
-        "line-width": 1.2,
-        "line-opacity": 0.55,
-        "line-dasharray": [1, 2],
+        "line-width": 1,
+        "line-opacity": 0.5,
+        // Long dashes read as "an area we worked in", not a boundary.
+        "line-dasharray": [4, 3],
       },
     });
     return;
@@ -571,18 +572,27 @@ function addExpeditionLayers(
     lineMetrics: true,
   });
 
-  // A soft glow beneath the line gives it presence over bright data without
-  // needing a heavy stroke that would obscure the map.
+  /*
+   * Three passes rather than one.
+   *
+   * A single stroke with dots at every port reads as a diagram. A wide, very
+   * soft halo under a fine bright line reads as a route drawn on a chart: the
+   * halo lifts it off busy scientific colour without thickening the line
+   * itself, so the geography underneath stays visible.
+   *
+   * Colour comes from the feature, not the layer, so each leg keeps its own
+   * identity within one source.
+   */
   instance.addLayer({
-    id: `exp-${slug}-route-glow`,
+    id: `exp-${slug}-route-halo`,
     type: "line",
     source: `exp-src-${slug}-route`,
     layout: { "line-cap": "round", "line-join": "round" },
     paint: {
-      "line-color": expedition.accent,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 6, 6, 14],
-      "line-opacity": 0.16,
-      "line-blur": 6,
+      "line-color": ["get", "accent"],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 7, 6, 18],
+      "line-opacity": 0.1,
+      "line-blur": 8,
     },
   });
 
@@ -590,12 +600,12 @@ function addExpeditionLayers(
     id: `exp-${slug}-route`,
     type: "line",
     source: `exp-src-${slug}-route`,
-    layout: { "line-cap": "butt", "line-join": "round" },
+    layout: { "line-cap": "round", "line-join": "round" },
     paint: {
-      "line-color": expedition.accent,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 1.4, 6, 3],
-      "line-opacity": 0.95,
-      ...(expedition.dashed ? { "line-dasharray": [2.5, 2] } : {}),
+      "line-color": ["get", "accent"],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 1.1, 4, 1.8, 7, 2.6],
+      "line-opacity": 0.96,
+      ...(expedition.dashed ? { "line-dasharray": [3, 2.5] } : {}),
     },
   });
 
@@ -605,16 +615,46 @@ function addExpeditionLayers(
     data: expeditionPortFeatures(expedition),
   });
 
+  /*
+   * Fine hollow rings, and only once the map is close enough for them to mean
+   * something. At global zoom a dot every few hundred kilometres turns the
+   * route into a string of beads and obscures the line it is annotating.
+   */
   instance.addLayer({
     id: `exp-${slug}-ports`,
     type: "circle",
     source: `exp-src-${slug}-ports`,
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 3, 6, 6],
-      "circle-color": "#020914",
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 2.6, 7, 4.5],
+      "circle-color": "rgba(0,0,0,0)",
       "circle-stroke-color": expedition.accent,
-      "circle-stroke-width": 1.8,
-      "circle-opacity": 0.9,
+      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 1.1, 7, 1.6],
+      "circle-opacity": 0,
+      "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0, 3.2, 0.9],
     },
+  });
+
+  // Clicking a leg identifies it, which is the point of colouring them apart.
+  instance.on("click", `exp-${slug}-route`, (event) => {
+    const feature = event.features?.[0];
+    if (!feature) return;
+    const p = feature.properties ?? {};
+    new maplibregl.Popup({ closeButton: true, maxWidth: "300px" })
+      .setLngLat(event.lngLat)
+      .setHTML(
+        `<div style="padding:14px 16px;font-family:var(--font-inter),sans-serif;font-size:12px">
+           <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d7488;margin-bottom:6px">${p.expeditionName ?? ""}</div>
+           <div style="color:#f4faff;font-size:13px;margin-bottom:6px">${p.legName ?? ""}</div>
+           <div style="color:#8fa7b8;line-height:1.5;margin-bottom:8px">${p.legDescription ?? ""}</div>
+           <div style="color:#ffb547;font-size:10px;line-height:1.4">${p.fidelityLabel ?? ""}</div>
+         </div>`,
+      )
+      .addTo(instance);
+  });
+  instance.on("mouseenter", `exp-${slug}-route`, () => {
+    instance.getCanvas().style.cursor = "pointer";
+  });
+  instance.on("mouseleave", `exp-${slug}-route`, () => {
+    instance.getCanvas().style.cursor = "";
   });
 }
