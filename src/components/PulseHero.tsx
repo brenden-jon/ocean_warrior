@@ -38,7 +38,10 @@ export default function PulseHero() {
         expeditions={expeditions}
         globe
         autoRotate
-        interactive
+        /* Deliberately not interactive. A zoomable map here hijacks the scroll
+           wheel, so the page would not scroll past the hero. The globe simply
+           turns; Explore is where you handle the data. */
+        interactive={false}
         className="absolute inset-0 h-full w-full"
       />
 

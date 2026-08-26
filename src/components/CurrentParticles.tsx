@@ -37,8 +37,15 @@ interface CurrentsData {
 const PARTICLE_COUNT = 3200;
 /** Frames a particle lives before being respawned, so trails keep renewing. */
 const MAX_AGE = 90;
-/** Degrees of longitude per (m/s · frame). Tuned for a readable drift speed. */
-const SPEED_SCALE = 0.55;
+/**
+ * Screen pixels travelled per frame by a 1 m/s current.
+ *
+ * Deliberately expressed in PIXELS, not degrees. A fixed step in degrees looks
+ * calm at global zoom and frantic when zoomed in, because a degree covers more
+ * and more screen. Converting through the map's current scale keeps the drift
+ * reading the same at every zoom level.
+ */
+const PIXELS_PER_MS_PER_FRAME = 2.2;
 
 export default function CurrentParticles({
   map,
@@ -84,19 +91,58 @@ export default function CurrentParticles({
 
     const { grid, u, v } = data;
 
-    /** Nearest-cell lookup. Returns null over land or outside the grid. */
-    const sample = (lat: number, lon: number): [number, number] | null => {
-      let wrapped = lon;
-      while (wrapped < grid.lon0) wrapped += 360;
-      while (wrapped >= grid.lon0 + grid.nLon * grid.dLon) wrapped -= 360;
-      const i = Math.round((lat - grid.lat0) / grid.dLat);
-      const j = Math.round((wrapped - grid.lon0) / grid.dLon);
-      if (i < 0 || i >= grid.nLat || j < 0 || j >= grid.nLon) return null;
-      const k = i * grid.nLon + j;
+    const cell = (i: number, j: number): [number, number] | null => {
+      if (i < 0 || i >= grid.nLat) return null;
+      const jw = ((j % grid.nLon) + grid.nLon) % grid.nLon;
+      const k = i * grid.nLon + jw;
       const uu = u[k];
       const vv = v[k];
       if (uu == null || vv == null) return null;
       return [uu, vv];
+    };
+
+    /**
+     * Bilinear lookup. Returns null over land or outside the grid.
+     *
+     * Nearest-cell sampling makes every particle inside a 1-degree box move
+     * identically and then jump at the boundary, which at close zoom looks like
+     * the field is stuttering rather than flowing. Interpolating between the
+     * four surrounding cells smooths that out. Cells missing a value (land) are
+     * dropped from the weighting rather than treated as zero, so coastal
+     * particles are not dragged towards a stationary shoreline.
+     */
+    const sample = (lat: number, lon: number): [number, number] | null => {
+      let wrapped = lon;
+      while (wrapped < grid.lon0) wrapped += 360;
+      while (wrapped >= grid.lon0 + grid.nLon * grid.dLon) wrapped -= 360;
+
+      const x = (lat - grid.lat0) / grid.dLat;
+      const y = (wrapped - grid.lon0) / grid.dLon;
+      const i0 = Math.floor(x);
+      const j0 = Math.floor(y);
+      const fx = x - i0;
+      const fy = y - j0;
+
+      const corners: [[number, number] | null, number][] = [
+        [cell(i0, j0), (1 - fx) * (1 - fy)],
+        [cell(i0, j0 + 1), (1 - fx) * fy],
+        [cell(i0 + 1, j0), fx * (1 - fy)],
+        [cell(i0 + 1, j0 + 1), fx * fy],
+      ];
+
+      let su = 0;
+      let sv = 0;
+      let sw = 0;
+      for (const [c, w] of corners) {
+        if (!c || w <= 0) continue;
+        su += c[0] * w;
+        sv += c[1] * w;
+        sw += w;
+      }
+      // Require a majority of real water around the point, otherwise this is
+      // effectively land and the particle should respawn.
+      if (sw < 0.5) return null;
+      return [su / sw, sv / sw];
     };
 
     interface Particle {
@@ -173,6 +219,11 @@ export default function CurrentParticles({
       context.lineWidth = 1.1;
       context.lineCap = "round";
 
+      // Degrees per screen pixel at the current zoom, used to keep the drift
+      // speed constant on screen rather than constant in degrees.
+      const degreesPerPixel = 360 / (512 * Math.pow(2, map.getZoom()));
+      const stepScale = PIXELS_PER_MS_PER_FRAME * degreesPerPixel;
+
       for (const p of particles) {
         p.age += 1;
         if (p.age > MAX_AGE) {
@@ -194,8 +245,8 @@ export default function CurrentParticles({
         const latRad = (p.lat * Math.PI) / 180;
         const cosLat = Math.max(Math.cos(latRad), 0.15);
 
-        const nextLon = p.lon + (uu * SPEED_SCALE) / cosLat;
-        const nextLat = p.lat + vv * SPEED_SCALE;
+        const nextLon = p.lon + (uu * stepScale) / cosLat;
+        const nextLat = p.lat + vv * stepScale;
 
         if (nextLat > 89 || nextLat < -89) {
           respawn(p);
@@ -208,7 +259,9 @@ export default function CurrentParticles({
           const dx = b.x - a.x;
           const dy = b.y - a.y;
           // A wrapped or occluded point produces an absurd jump; skip it.
-          if (dx * dx + dy * dy < 40000) {
+          // A calibrated step is only a couple of pixels; anything much larger
+          // is a wrap or an occlusion artefact, not a current.
+          if (dx * dx + dy * dy < 900) {
             // Faster water draws brighter, so the major currents stand out.
             const intensity = Math.min(speed / 0.7, 1);
             context.strokeStyle = `rgba(${150 + intensity * 105}, ${

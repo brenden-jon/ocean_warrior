@@ -71,10 +71,8 @@ export default function WhereToGo() {
                 Keeping a pulse on the planet takes a fleet
               </h3>
               <p className="mt-4 text-sm leading-relaxed text-muted">
-                Ocean Warrior is an ambitious, long-term attempt to collect
-                critical ocean data from the places nobody else goes — and to
-                keep collecting it, in the same waters, for a decade. Partners,
-                sponsors and supporters are what put the next vessel to sea.
+                Three vessels, roughly 20,000 nautical miles a year, for ten
+                years. Partners and supporters put the next one to sea.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -99,10 +97,10 @@ export default function WhereToGo() {
         </div>
 
         <p className="mt-12 max-w-2xl text-[11px] leading-relaxed text-dim">
-          Planetary Pulse is a private prototype for Ocean Warrior. It holds no
-          ocean data of its own: everything shown is produced by NASA, NOAA,
-          NSIDC, the international Argo programme, OBIS, GEBCO, Copernicus
-          Marine and UNEP-WCMC/IUCN, and is credited in the data catalog.
+          Planetary Pulse holds no ocean data of its own. Everything shown is
+          produced by NASA, NOAA, NSIDC, the international Argo programme, OBIS,
+          GEBCO and UNEP-WCMC/IUCN, and is credited in the{" "}
+          <a href="/data" className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright">data catalog</a>.
         </p>
       </div>
     </section>

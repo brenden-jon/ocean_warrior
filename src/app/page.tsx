@@ -1,6 +1,5 @@
 import PulseHero from "@/components/PulseHero";
 import Proposition from "@/components/Proposition";
-import WhyItMatters from "@/components/WhyItMatters";
 import PulseCards from "@/components/PulseCards";
 import WhereToGo from "@/components/WhereToGo";
 import SiteHeader from "@/components/SiteHeader";
@@ -12,7 +11,6 @@ export default function HomePage() {
       <main>
         <PulseHero />
         <Proposition />
-        <WhyItMatters />
         <PulseCards />
         <WhereToGo />
       </main>

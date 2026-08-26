@@ -139,6 +139,11 @@ export default function OceanGlobe({
       minZoom: 0.6,
       maxZoom: 9,
       interactive,
+      // Never let the map swallow page scroll when it is only decorative.
+      scrollZoom: interactive,
+      boxZoom: interactive,
+      doubleClickZoom: interactive,
+      keyboard: interactive,
       attributionControl: false,
       // The globe reads as a physical object; a little tilt sells it without
       // making the map hard to read.

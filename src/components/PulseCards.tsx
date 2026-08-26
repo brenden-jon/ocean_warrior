@@ -21,18 +21,13 @@ export default function PulseCards() {
     EXPEDITIONS.find((e) => e.slug === "svalbard-2027") ?? EXPEDITIONS[0];
 
   return (
-    <section className="mx-auto max-w-[1500px] px-6 py-24 sm:px-10 lg:px-16">
-      <div className="mb-12 max-w-2xl">
-        <p className="eyebrow mb-4">The pulse</p>
-        <h2 className="display text-[clamp(2rem,4.5vw,3.2rem)] text-ice">
-          Four readings,
-          <br />
-          taken this week
+    <section className="mx-auto max-w-[1500px] px-6 py-20 sm:px-10 lg:px-16">
+      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <h2 className="display text-[clamp(1.6rem,3vw,2.4rem)] text-ice">
+          Four readings, taken this week
         </h2>
-        <p className="mt-5 text-sm leading-relaxed text-muted">
-          Each of these comes from a different observing system, and each says
-          when it was last measured. None of them is a forecast, and there is no
-          single score — the ocean does not have one.
+        <p className="text-[11px] text-dim">
+          No forecasts, and no single score — the ocean does not have one.
         </p>
       </div>
 
@@ -153,18 +148,15 @@ export default function PulseCards() {
 
       {/* ----------------------------------------------------- context -- */}
       {gistemp.data && (
-        <p className="mt-10 max-w-3xl text-sm leading-relaxed text-dim">
-          For context, the planet&rsquo;s surface averaged{" "}
+        <p className="mt-8 text-[11px] leading-relaxed text-dim">
+          Context: the planet&rsquo;s surface averaged{" "}
           <span className="text-muted tnum">
-            {gistemp.data.annual[gistemp.data.annual.length - 1].anomaly.toFixed(
-              2,
-            )}
+            {gistemp.data.annual[gistemp.data.annual.length - 1].anomaly.toFixed(2)}
             °C
           </span>{" "}
           above its {gistemp.data.source.baseline} average in{" "}
-          {gistemp.data.annual[gistemp.data.annual.length - 1].year}. That is a
-          land-and-ocean figure from NASA GISS, shown here as background — it is
-          not an ocean measurement.
+          {gistemp.data.annual[gistemp.data.annual.length - 1].year} (NASA GISS,
+          land and ocean combined — not an ocean measurement).
         </p>
       )}
     </section>
