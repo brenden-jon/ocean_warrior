@@ -82,6 +82,19 @@ export interface OceanGlobeProps {
 
 const OVERLAY_SOURCE = "gibs-overlay";
 const OVERLAY_LAYER = "gibs-overlay-layer";
+const ICE_SOURCE = "gibs-ice-underlay";
+const ICE_LAYER = "gibs-ice-underlay-layer";
+
+/*
+ * Layers that are undefined over sea ice.
+ *
+ * Sea surface temperature has no value where the sea has a lid on it, so the
+ * Arctic and the Southern Ocean render as holes and the base imagery shows
+ * through. Drawing ice concentration UNDERNEATH means the gap fills with the
+ * actual reason for the gap: ice. It is real data, it is the correct
+ * explanation, and it looks like the ocean rather than like a rendering fault.
+ */
+const NEEDS_ICE_UNDERLAY = new Set(["sst", "sstAnomaly"]);
 
 export default function OceanGlobe({
   dataLayer,
@@ -175,6 +188,8 @@ export default function OceanGlobe({
     // Remove any existing overlay first so switching layers is clean.
     if (instance.getLayer(OVERLAY_LAYER)) instance.removeLayer(OVERLAY_LAYER);
     if (instance.getSource(OVERLAY_SOURCE)) instance.removeSource(OVERLAY_SOURCE);
+    if (instance.getLayer(ICE_LAYER)) instance.removeLayer(ICE_LAYER);
+    if (instance.getSource(ICE_SOURCE)) instance.removeSource(ICE_SOURCE);
 
     if (!dataLayer) {
       onDataCoverageChange?.(false, date);
@@ -195,6 +210,32 @@ export default function OceanGlobe({
 
     // Insert beneath coastlines so land outlines stay legible over the data.
     const before = instance.getLayer("coastlines") ? "coastlines" : undefined;
+
+    if (NEEDS_ICE_UNDERLAY.has(dataLayer as string)) {
+      const iceDef = GIBS_LAYERS.seaIceMur;
+      instance.addSource(ICE_SOURCE, {
+        type: "raster",
+        tiles: [
+          gibsTileUrl(iceDef, "epsg3857", clampToCoverage(iceDef, effectiveDate)),
+        ],
+        tileSize: 256,
+        maxzoom: iceDef.maxNativeZoom,
+      });
+      instance.addLayer(
+        {
+          id: ICE_LAYER,
+          type: "raster",
+          source: ICE_SOURCE,
+          paint: {
+            "raster-opacity": 1,
+            "raster-fade-duration": 220,
+            "raster-resampling": "linear",
+          },
+        },
+        before,
+      );
+    }
+
     instance.addLayer(
       {
         id: OVERLAY_LAYER,

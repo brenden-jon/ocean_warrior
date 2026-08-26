@@ -555,6 +555,27 @@ export default function ExploreMap() {
             className="w-full rounded-sm border border-[var(--hairline)] bg-[rgba(7,20,36,0.6)] px-3 py-2 text-sm text-ice focus:border-cyan focus:outline-none"
           />
 
+          {(layerKey === "sst" || layerKey === "sstAnomaly") && (
+            <p className="mt-2 text-[11px] leading-relaxed text-dim">
+              Sea surface temperature is undefined beneath sea ice, so ice
+              concentration for the same date is drawn underneath — the white
+              at the poles is ice, not missing data.
+            </p>
+          )}
+
+          <p className="mt-1.5 text-[11px] leading-relaxed text-dim">
+            This map uses Web Mercator, which cannot represent latitudes beyond
+            85&deg;. The polar caps are shaded rather than measured. For a true
+            polar projection see the{" "}
+            <a
+              href={asset("/arctic/")}
+              className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright"
+            >
+              Arctic view
+            </a>
+            .
+          </p>
+
           {outsideCoverage && (
             <p className="mt-2 text-[11px] text-amber" role="status">
               This layer has no data for {date}. Showing {effectiveDate}, the

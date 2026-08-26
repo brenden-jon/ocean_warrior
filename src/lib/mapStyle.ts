@@ -51,6 +51,54 @@ export function buildBaseStyle(options?: {
         tileSize: 256,
         maxzoom: GIBS_LAYERS.graticule.maxNativeZoom,
       },
+      /*
+       * Polar caps.
+       *
+       * Web Mercator stops at ±85.051129°, so no tiled source can supply
+       * anything closer to the poles than that. Left bare, the base imagery's
+       * final pixel row smears into a radial starburst centred on the pole,
+       * which reads as a data artefact — because it is one.
+       *
+       * These polygons cover the gap with a flat ice tone. They are NOT a
+       * measurement and the layer panel says so, pointing to the Arctic view,
+       * which uses a true polar projection and can actually show the pole.
+       */
+      "polar-cap": {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: { pole: "north" },
+              geometry: {
+                type: "Polygon",
+                coordinates: [
+                  [
+                    [-180, 84.5], [-90, 84.5], [0, 84.5], [90, 84.5],
+                    [180, 84.5], [180, 89.99], [90, 89.99], [0, 89.99],
+                    [-90, 89.99], [-180, 89.99], [-180, 84.5],
+                  ],
+                ],
+              },
+            },
+            {
+              type: "Feature",
+              properties: { pole: "south" },
+              geometry: {
+                type: "Polygon",
+                coordinates: [
+                  [
+                    [-180, -84.5], [-90, -84.5], [0, -84.5], [90, -84.5],
+                    [180, -84.5], [180, -89.99], [90, -89.99], [0, -89.99],
+                    [-90, -89.99], [-180, -89.99], [-180, -84.5],
+                  ],
+                ],
+              },
+            },
+          ],
+        },
+      },
     },
     layers: [
       {
@@ -73,6 +121,17 @@ export function buildBaseStyle(options?: {
           "raster-contrast": 0.04,
           "raster-opacity": 1,
           "raster-fade-duration": 260,
+        },
+      },
+      {
+        // Above the base imagery so it hides the pole smear, below every data
+        // layer so it never covers a real measurement.
+        id: "polar-cap",
+        type: "fill",
+        source: "polar-cap",
+        paint: {
+          "fill-color": "#dce9f2",
+          "fill-opacity": 0.9,
         },
       },
       {
