@@ -77,6 +77,11 @@ export interface OceanGlobeProps {
   showGraticule?: boolean;
   /** Slowly rotate. Used on the home page hero only. */
   autoRotate?: boolean;
+  /**
+   * Draw routes heavier, and run an animated light along published ones.
+   * Used on the hero, where the route has to read instantly against busy data.
+   */
+  emphasizeRoutes?: boolean;
   className?: string;
   onReady?: (map: MapLibreMap) => void;
   onDataCoverageChange?: (outside: boolean, clampedDate: string) => void;
@@ -94,9 +99,14 @@ const ICE_LAYER = "gibs-ice-underlay-layer";
  *
  * Sea surface temperature has no value where the sea has a lid on it, so the
  * Arctic and the Southern Ocean render as holes and the base imagery shows
- * through. Drawing ice concentration UNDERNEATH means the gap fills with the
- * actual reason for the gap: ice. It is real data, it is the correct
- * explanation, and it looks like the ocean rather than like a rendering fault.
+ * through. Drawing ice concentration UNDERNEATH fills that gap with the actual
+ * reason for it.
+ *
+ * It is rendered desaturated and brightened to a plain white ice mass rather
+ * than in NASA's spectral palette. Underneath a temperature scale a second
+ * rainbow would be unreadable, and here the layer is only answering "is there
+ * ice here?" — it is not being offered as a concentration reading. The
+ * quantitative version is the standalone sea-ice layer, in NASA's own colours.
  */
 const NEEDS_ICE_UNDERLAY = new Set(["sst", "sstAnomaly"]);
 
@@ -116,6 +126,7 @@ export default function OceanGlobe({
   showCoastlines = true,
   showGraticule = false,
   autoRotate = false,
+  emphasizeRoutes = false,
   className,
   onReady,
   onDataCoverageChange,
@@ -277,7 +288,10 @@ export default function OceanGlobe({
           type: "raster",
           source: ICE_SOURCE,
           paint: {
-            "raster-opacity": 1,
+            "raster-opacity": 0.95,
+            "raster-saturation": -1,
+            "raster-brightness-min": 0.82,
+            "raster-brightness-max": 1,
             "raster-fade-duration": 220,
             "raster-resampling": "linear",
           },
@@ -330,9 +344,81 @@ export default function OceanGlobe({
     for (const slug of expeditions) {
       const expedition = EXPEDITIONS.find((e) => e.slug === slug);
       if (!expedition) continue;
-      addExpeditionLayers(instance, expedition);
+      addExpeditionLayers(instance, expedition, emphasizeRoutes);
     }
-  }, [expeditions, ready]);
+  }, [expeditions, ready, emphasizeRoutes]);
+
+  /* ------------------------------------------------- route "voyage" light --
+     A bright band sweeping along each published route, looping. Deliberately
+     NOT a vessel marker: we have no tracker feed, and an icon sitting at a
+     position would read as a live location. A light running the whole length
+     reads as "this is the route" the way a transit map does, and asserts
+     nothing about where anyone is.
+
+     Only solid (published-itinerary) routes get it — MapLibre cannot combine
+     line-gradient with line-dasharray anyway, so concept routes stay dashed
+     and static, which usefully keeps the real programme as the thing that
+     moves. */
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || !ready || !emphasizeRoutes) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const targets = expeditions
+      .map((slug) => EXPEDITIONS.find((e) => e.slug === slug))
+      .filter((e): e is ExpeditionRecord => Boolean(e) && !e!.dashed && e!.legs.length > 0);
+    if (targets.length === 0) return;
+
+    let frame: number | null = null;
+    let last = 0;
+    const PERIOD_MS = 9000;
+    const TAIL = 0.16;
+    const HEAD = 0.02;
+
+    const tick = (now: number) => {
+      // ~24 fps is plenty for a slow sweep and keeps setPaintProperty cheap.
+      if (now - last > 42) {
+        last = now;
+        const t = (now % PERIOD_MS) / PERIOD_MS;
+
+        for (const expedition of targets) {
+          const layerId = `exp-${expedition.slug}-route`;
+          if (!instance.getLayer(layerId)) continue;
+
+          const base = "rgba(0,183,232,0.55)";
+          const bright = "#eaffff";
+          const tailStart = Math.max(0.0001, t - TAIL);
+          const headEnd = Math.min(0.9999, t + HEAD);
+
+          // Stops must increase strictly, so a sweep straddling either end is
+          // clamped rather than wrapped.
+          const stops: (number | string)[] = [];
+          stops.push(0, base);
+          if (tailStart > 0.0001) stops.push(tailStart, base);
+          if (t > tailStart) stops.push(t, bright);
+          if (headEnd > t) stops.push(headEnd, base);
+          stops.push(1, base);
+
+          try {
+            instance.setPaintProperty(layerId, "line-gradient", [
+              "interpolate",
+              ["linear"],
+              ["line-progress"],
+              ...stops,
+            ]);
+          } catch {
+            // Layer swapped out mid-frame; the next tick will pick it up.
+          }
+        }
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [expeditions, ready, emphasizeRoutes]);
 
   /* ------------------------------------------------ polygon overlays -- */
   useEffect(() => {
@@ -587,6 +673,7 @@ export default function OceanGlobe({
 function addExpeditionLayers(
   instance: MapLibreMap,
   expedition: ExpeditionRecord,
+  emphasize = false,
 ) {
   const slug = expedition.slug;
 
@@ -647,11 +734,21 @@ function addExpeditionLayers(
     layout: { "line-cap": "round", "line-join": "round" },
     paint: {
       "line-color": ["get", "accent"],
-      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 7, 6, 18],
-      "line-opacity": 0.1,
-      "line-blur": 8,
+      "line-width": emphasize
+        ? ["interpolate", ["linear"], ["zoom"], 1, 13, 6, 26]
+        : ["interpolate", ["linear"], ["zoom"], 1, 7, 6, 18],
+      "line-opacity": emphasize ? 0.2 : 0.1,
+      "line-blur": emphasize ? 11 : 8,
     },
   });
+
+  /*
+   * A gradient cannot coexist with a dash pattern in MapLibre, and the sweep
+   * animation drives the gradient. So published routes get a gradient-capable
+   * layer and concept routes keep their dashes: the fidelity encoding survives,
+   * and only the real programme animates.
+   */
+  const animated = emphasize && !expedition.dashed;
 
   instance.addLayer({
     id: `exp-${slug}-route`,
@@ -659,12 +756,29 @@ function addExpeditionLayers(
     source: `exp-src-${slug}-route`,
     layout: { "line-cap": "round", "line-join": "round" },
     paint: {
-      "line-color": ["get", "accent"],
-      "line-width": ["interpolate", ["linear"], ["zoom"], 1, 1.1, 4, 1.8, 7, 2.6],
+      "line-width": emphasize
+        ? ["interpolate", ["linear"], ["zoom"], 1, 2.6, 4, 3.6, 7, 4.6]
+        : ["interpolate", ["linear"], ["zoom"], 1, 1.1, 4, 1.8, 7, 2.6],
       "line-opacity": 0.96,
+      "line-color": ["get", "accent"],
       ...(expedition.dashed ? { "line-dasharray": [3, 2.5] } : {}),
     },
   });
+
+  if (animated) {
+    // Set after creation rather than inline: the paint union types for a line
+    // layer do not narrow cleanly across a conditional spread, and the sweep
+    // replaces this on the very next frame anyway.
+    instance.setPaintProperty(`exp-${slug}-route`, "line-gradient", [
+      "interpolate",
+      ["linear"],
+      ["line-progress"],
+      0,
+      "rgba(0,183,232,0.55)",
+      1,
+      "rgba(0,183,232,0.55)",
+    ]);
+  }
 
   // --- ports -------------------------------------------------------------
   instance.addSource(`exp-src-${slug}-ports`, {
@@ -682,12 +796,20 @@ function addExpeditionLayers(
     type: "circle",
     source: `exp-src-${slug}-ports`,
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 2.6, 7, 4.5],
-      "circle-color": "rgba(0,0,0,0)",
-      "circle-stroke-color": expedition.accent,
-      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 1.1, 7, 1.6],
-      "circle-opacity": 0,
-      "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0, 3.2, 0.9],
+      // On the hero the ports are part of what makes the line read as a
+      // voyage rather than a stray stroke, so they appear from the start.
+      "circle-radius": emphasize
+        ? ["interpolate", ["linear"], ["zoom"], 1, 2.4, 7, 5]
+        : ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 2.6, 7, 4.5],
+      "circle-color": emphasize ? "#020914" : "rgba(0,0,0,0)",
+      "circle-stroke-color": emphasize ? "#eaffff" : expedition.accent,
+      "circle-stroke-width": emphasize
+        ? ["interpolate", ["linear"], ["zoom"], 1, 1.2, 7, 1.8]
+        : ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 1.1, 7, 1.6],
+      "circle-opacity": emphasize ? 0.85 : 0,
+      "circle-stroke-opacity": emphasize
+        ? 0.95
+        : ["interpolate", ["linear"], ["zoom"], 2, 0, 3.2, 0.9],
     },
   });
 

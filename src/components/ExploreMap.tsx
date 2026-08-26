@@ -581,19 +581,15 @@ export default function ExploreMap() {
             {(layerKey === "sst" || layerKey === "sstAnomaly") && (
               <p className="mt-2 text-[11px] leading-relaxed text-dim">
                 Sea surface temperature is undefined beneath sea ice, so ice
-                concentration for the same date is drawn underneath — the
-                colour at the poles is ice, not missing data.
+                cover for the same date fills that gap in white. This map also
+                uses Web Mercator, which cannot reach beyond 85&deg; — the very
+                top of the globe is a projection gap, not a measurement. The{" "}
+                <a href={asset("/arctic/")} className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright">
+                  Arctic view
+                </a>{" "}
+                uses a true polar projection.
               </p>
             )}
-
-            <p className="mt-1.5 text-[11px] leading-relaxed text-dim">
-              Web Mercator cannot represent latitudes beyond 85&deg;, so the
-              polar caps are shaded rather than measured. For a true polar
-              projection see the{" "}
-              <a href={asset("/arctic/")} className="underline decoration-dotted underline-offset-2 hover:text-cyan-bright">
-                Arctic view
-              </a>.
-            </p>
 
             {outsideCoverage && (
               <p className="mt-2 text-[11px] text-amber" role="status">

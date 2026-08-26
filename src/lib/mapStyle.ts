@@ -51,51 +51,6 @@ export function buildBaseStyle(options?: {
         tileSize: 256,
         maxzoom: GIBS_LAYERS.graticule.maxNativeZoom,
       },
-      /*
-       * Polar caps.
-       *
-       * Web Mercator stops at ±85.051129°, so no tiled source can supply
-       * anything closer to the poles than that. Left bare, the base imagery's
-       * final pixel row smears into a radial starburst centred on the pole,
-       * which reads as a data artefact — because it is one.
-       *
-       * These polygons cover the gap with a flat ice tone. They are NOT a
-       * measurement and the layer panel says so, pointing to the Arctic view,
-       * which uses a true polar projection and can actually show the pole.
-       */
-      "polar-cap": {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              properties: { pole: "north" },
-              geometry: {
-                type: "MultiPolygon",
-                // Split at the antimeridian: a single ring spanning the whole
-                // longitude range is degenerate and can leave the source in a
-                // state the map never reports as loaded.
-                coordinates: [
-                  [[[-179.9, 85.0], [-90, 85.0], [-0.05, 85.0], [-0.05, 89.9], [-90, 89.9], [-179.9, 89.9], [-179.9, 85.0]]],
-                  [[[0.05, 85.0], [90, 85.0], [179.9, 85.0], [179.9, 89.9], [90, 89.9], [0.05, 89.9], [0.05, 85.0]]],
-                ],
-              },
-            },
-            {
-              type: "Feature",
-              properties: { pole: "south" },
-              geometry: {
-                type: "MultiPolygon",
-                coordinates: [
-                  [[[-179.9, -85.0], [-90, -85.0], [-0.05, -85.0], [-0.05, -89.9], [-90, -89.9], [-179.9, -89.9], [-179.9, -85.0]]],
-                  [[[0.05, -85.0], [90, -85.0], [179.9, -85.0], [179.9, -89.9], [90, -89.9], [0.05, -89.9], [0.05, -85.0]]],
-                ],
-              },
-            },
-          ],
-        },
-      },
     },
     layers: [
       {
@@ -136,27 +91,6 @@ export function buildBaseStyle(options?: {
         source: "graticule",
         layout: { visibility: showGraticule ? "visible" : "none" },
         paint: { "raster-opacity": 0.14 },
-      },
-      {
-        /*
-         * Must sit ABOVE the data rasters, not below them. The starburst is
-         * produced by the data layer's own top tile row being stretched across
-         * the cap, so a fill underneath it hides nothing.
-         *
-         * Data layers are inserted before "coastlines", which puts them below
-         * this. Expedition routes are added afterwards and draw on top, which
-         * is correct — a route crossing the pole should still be visible.
-         */
-        id: "polar-cap",
-        type: "fill",
-        source: "polar-cap",
-        paint: {
-          // A muted ice tone rather than flat white. This is a cartographic
-          // placeholder for ground the projection cannot reach, so it should
-          // read as part of the ice, not as a graphic pasted over it.
-          "fill-color": "#cfe0ec",
-          "fill-opacity": 0.82,
-        },
       },
     ],
   };
