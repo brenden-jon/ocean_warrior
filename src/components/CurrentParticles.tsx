@@ -297,8 +297,13 @@ export default function CurrentParticles({
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
-      map.off("resize", resize);
-      map.off("movestart", clear);
+      // The map may already have been destroyed by the parent's cleanup.
+      try {
+        map.off("resize", resize);
+        map.off("movestart", clear);
+      } catch {
+        /* already gone */
+      }
       context.clearRect(0, 0, width(), height());
     };
   }, [map, data, visible]);

@@ -233,8 +233,10 @@ export default function OceanGlobe({
     return () => {
       window.clearTimeout(pollTimer);
       if (rotationFrame.current) cancelAnimationFrame(rotationFrame.current);
-      instance.remove();
+      // Null the ref BEFORE removing, so any cleanup that runs after this one
+      // sees the map as gone rather than calling into a half-destroyed object.
       map.current = null;
+      instance.remove();
     };
     // Deliberately mount-only: subsequent prop changes are handled by the
     // effects below rather than by tearing the map down and rebuilding it.
@@ -498,6 +500,12 @@ export default function OceanGlobe({
     }
 
     return () => {
+      // On unmount React runs the init effect's cleanup first, and that calls
+      // instance.remove(). Touching the map afterwards throws, because its
+      // style is gone — which crashed the whole app on any navigation away
+      // from a page with overlays. map.current is nulled by that same cleanup,
+      // so it is a reliable "already destroyed" signal.
+      if (!map.current) return;
       for (const id of drawn) {
         for (const layerId of [`pg-fill-${id}`, `pg-line-${id}`]) {
           if (instance.getLayer(layerId)) instance.removeLayer(layerId);
@@ -584,6 +592,8 @@ export default function OceanGlobe({
 
     // Remove overlays that are no longer requested.
     return () => {
+      // See the polygon cleanup: the map may already have been destroyed.
+      if (!map.current) return;
       for (const id of drawn) {
         const layerId = `ov-${id}`;
         const sourceId = `ov-src-${id}`;
