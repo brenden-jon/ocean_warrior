@@ -1,0 +1,765 @@
+{
+  "hemisphere": "north",
+  "source": {
+    "org": "NSIDC",
+    "product": "Sea Ice Index, Version 4",
+    "datasetId": "G02135",
+    "url": "https://nsidc.org/data/g02135/versions/4",
+    "unit": "million km\u00b2",
+    "definition": "Extent is the total area of ocean where sea-ice concentration is at least 15%.",
+    "attribution": "Fetterer, F., K. Knowles, W. N. Meier, M. Savoie, and A. K. Windnagel. Sea Ice Index, Version 4. NSIDC, Boulder, Colorado USA."
+  },
+  "imageSource": {
+    "product": "NSIDC Sea Ice Index v4 daily concentration over NASA Blue Marble",
+    "url": "https://nsidc.org/data/g02135/versions/4",
+    "note": "Images cropped to the globe from NSIDC's published rendering. The orange line is the 1981\u20132010 median ice edge. The grey disc at the pole is the area the satellite orbit never observes."
+  },
+  "projection": "NSIDC north polar stereographic (EPSG:3413), rendered orthographically by NSIDC",
+  "frames": [
+    {
+      "kind": "max",
+      "year": 1979,
+      "date": "1979-03-01",
+      "extent": 16.635,
+      "file": "n_max_1979.webp",
+      "sizeKb": 60.0
+    },
+    {
+      "kind": "min",
+      "year": 1979,
+      "date": "1979-09-21",
+      "extent": 6.895,
+      "file": "n_min_1979.webp",
+      "sizeKb": 55.5
+    },
+    {
+      "kind": "max",
+      "year": 1980,
+      "date": "1980-03-05",
+      "extent": 16.302,
+      "file": "n_max_1980.webp",
+      "sizeKb": 59.7
+    },
+    {
+      "kind": "min",
+      "year": 1980,
+      "date": "1980-09-05",
+      "extent": 7.533,
+      "file": "n_min_1980.webp",
+      "sizeKb": 56.1
+    },
+    {
+      "kind": "max",
+      "year": 1981,
+      "date": "1981-03-14",
+      "extent": 15.801,
+      "file": "n_max_1981.webp",
+      "sizeKb": 58.9
+    },
+    {
+      "kind": "min",
+      "year": 1981,
+      "date": "1981-09-10",
+      "extent": 6.902,
+      "file": "n_min_1981.webp",
+      "sizeKb": 56.0
+    },
+    {
+      "kind": "max",
+      "year": 1982,
+      "date": "1982-02-27",
+      "extent": 16.325,
+      "file": "n_max_1982.webp",
+      "sizeKb": 59.4
+    },
+    {
+      "kind": "min",
+      "year": 1982,
+      "date": "1982-09-13",
+      "extent": 7.16,
+      "file": "n_min_1982.webp",
+      "sizeKb": 56.0
+    },
+    {
+      "kind": "max",
+      "year": 1983,
+      "date": "1983-03-14",
+      "extent": 16.412,
+      "file": "n_max_1983.webp",
+      "sizeKb": 59.7
+    },
+    {
+      "kind": "min",
+      "year": 1983,
+      "date": "1983-09-08",
+      "extent": 7.204,
+      "file": "n_min_1983.webp",
+      "sizeKb": 56.7
+    },
+    {
+      "kind": "max",
+      "year": 1984,
+      "date": "1984-03-18",
+      "extent": 15.809,
+      "file": "n_max_1984.webp",
+      "sizeKb": 59.3
+    },
+    {
+      "kind": "min",
+      "year": 1984,
+      "date": "1984-09-16",
+      "extent": 6.396,
+      "file": "n_min_1984.webp",
+      "sizeKb": 55.7
+    },
+    {
+      "kind": "max",
+      "year": 1985,
+      "date": "1985-03-17",
+      "extent": 16.163,
+      "file": "n_max_1985.webp",
+      "sizeKb": 59.2
+    },
+    {
+      "kind": "min",
+      "year": 1985,
+      "date": "1985-09-09",
+      "extent": 6.486,
+      "file": "n_min_1985.webp",
+      "sizeKb": 55.9
+    },
+    {
+      "kind": "max",
+      "year": 1986,
+      "date": "1986-03-10",
+      "extent": 16.158,
+      "file": "n_max_1986.webp",
+      "sizeKb": 59.9
+    },
+    {
+      "kind": "min",
+      "year": 1986,
+      "date": "1986-09-06",
+      "extent": 7.122,
+      "file": "n_min_1986.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 1988,
+      "date": "1988-03-10",
+      "extent": 16.309,
+      "file": "n_max_1988.webp",
+      "sizeKb": 58.3
+    },
+    {
+      "kind": "min",
+      "year": 1988,
+      "date": "1988-09-11",
+      "extent": 7.048,
+      "file": "n_min_1988.webp",
+      "sizeKb": 55.7
+    },
+    {
+      "kind": "max",
+      "year": 1989,
+      "date": "1989-03-06",
+      "extent": 15.766,
+      "file": "n_max_1989.webp",
+      "sizeKb": 59.0
+    },
+    {
+      "kind": "min",
+      "year": 1989,
+      "date": "1989-09-22",
+      "extent": 6.888,
+      "file": "n_min_1989.webp",
+      "sizeKb": 55.9
+    },
+    {
+      "kind": "max",
+      "year": 1990,
+      "date": "1990-03-12",
+      "extent": 16.249,
+      "file": "n_max_1990.webp",
+      "sizeKb": 59.4
+    },
+    {
+      "kind": "min",
+      "year": 1990,
+      "date": "1990-09-21",
+      "extent": 6.011,
+      "file": "n_min_1990.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 1991,
+      "date": "1991-02-25",
+      "extent": 15.647,
+      "file": "n_max_1991.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 1991,
+      "date": "1991-09-16",
+      "extent": 6.259,
+      "file": "n_min_1991.webp",
+      "sizeKb": 56.1
+    },
+    {
+      "kind": "max",
+      "year": 1992,
+      "date": "1992-03-12",
+      "extent": 15.576,
+      "file": "n_max_1992.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 1992,
+      "date": "1992-09-07",
+      "extent": 7.159,
+      "file": "n_min_1992.webp",
+      "sizeKb": 55.5
+    },
+    {
+      "kind": "max",
+      "year": 1993,
+      "date": "1993-03-13",
+      "extent": 16.048,
+      "file": "n_max_1993.webp",
+      "sizeKb": 58.6
+    },
+    {
+      "kind": "min",
+      "year": 1993,
+      "date": "1993-09-13",
+      "extent": 6.161,
+      "file": "n_min_1993.webp",
+      "sizeKb": 56.0
+    },
+    {
+      "kind": "max",
+      "year": 1994,
+      "date": "1994-02-21",
+      "extent": 15.77,
+      "file": "n_max_1994.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 1994,
+      "date": "1994-09-05",
+      "extent": 6.934,
+      "file": "n_min_1994.webp",
+      "sizeKb": 56.1
+    },
+    {
+      "kind": "max",
+      "year": 1995,
+      "date": "1995-03-31",
+      "extent": 15.384,
+      "file": "n_max_1995.webp",
+      "sizeKb": 58.8
+    },
+    {
+      "kind": "min",
+      "year": 1995,
+      "date": "1995-09-04",
+      "extent": 6.012,
+      "file": "n_min_1995.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 1996,
+      "date": "1996-02-21",
+      "extent": 15.484,
+      "file": "n_max_1996.webp",
+      "sizeKb": 59.2
+    },
+    {
+      "kind": "min",
+      "year": 1996,
+      "date": "1996-09-10",
+      "extent": 7.147,
+      "file": "n_min_1996.webp",
+      "sizeKb": 56.1
+    },
+    {
+      "kind": "max",
+      "year": 1997,
+      "date": "1997-03-20",
+      "extent": 15.684,
+      "file": "n_max_1997.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 1997,
+      "date": "1997-09-03",
+      "extent": 6.602,
+      "file": "n_min_1997.webp",
+      "sizeKb": 55.3
+    },
+    {
+      "kind": "max",
+      "year": 1998,
+      "date": "1998-02-25",
+      "extent": 16.07,
+      "file": "n_max_1998.webp",
+      "sizeKb": 58.5
+    },
+    {
+      "kind": "min",
+      "year": 1998,
+      "date": "1998-09-17",
+      "extent": 6.293,
+      "file": "n_min_1998.webp",
+      "sizeKb": 56.1
+    },
+    {
+      "kind": "max",
+      "year": 1999,
+      "date": "1999-03-30",
+      "extent": 15.627,
+      "file": "n_max_1999.webp",
+      "sizeKb": 58.4
+    },
+    {
+      "kind": "min",
+      "year": 1999,
+      "date": "1999-09-12",
+      "extent": 5.676,
+      "file": "n_min_1999.webp",
+      "sizeKb": 56.0
+    },
+    {
+      "kind": "max",
+      "year": 2000,
+      "date": "2000-03-03",
+      "extent": 15.498,
+      "file": "n_max_2000.webp",
+      "sizeKb": 58.4
+    },
+    {
+      "kind": "min",
+      "year": 2000,
+      "date": "2000-09-11",
+      "extent": 5.943,
+      "file": "n_min_2000.webp",
+      "sizeKb": 55.9
+    },
+    {
+      "kind": "max",
+      "year": 2001,
+      "date": "2001-03-04",
+      "extent": 15.742,
+      "file": "n_max_2001.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 2001,
+      "date": "2001-09-19",
+      "extent": 6.567,
+      "file": "n_min_2001.webp",
+      "sizeKb": 55.7
+    },
+    {
+      "kind": "max",
+      "year": 2002,
+      "date": "2002-03-09",
+      "extent": 15.624,
+      "file": "n_max_2002.webp",
+      "sizeKb": 58.2
+    },
+    {
+      "kind": "min",
+      "year": 2002,
+      "date": "2002-09-18",
+      "extent": 5.625,
+      "file": "n_min_2002.webp",
+      "sizeKb": 55.5
+    },
+    {
+      "kind": "max",
+      "year": 2003,
+      "date": "2003-03-20",
+      "extent": 15.629,
+      "file": "n_max_2003.webp",
+      "sizeKb": 58.5
+    },
+    {
+      "kind": "min",
+      "year": 2003,
+      "date": "2003-09-17",
+      "extent": 5.969,
+      "file": "n_min_2003.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 2004,
+      "date": "2004-03-10",
+      "extent": 15.3,
+      "file": "n_max_2004.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 2004,
+      "date": "2004-09-18",
+      "extent": 5.77,
+      "file": "n_min_2004.webp",
+      "sizeKb": 55.4
+    },
+    {
+      "kind": "max",
+      "year": 2005,
+      "date": "2005-03-09",
+      "extent": 14.993,
+      "file": "n_max_2005.webp",
+      "sizeKb": 58.6
+    },
+    {
+      "kind": "min",
+      "year": 2005,
+      "date": "2005-09-20",
+      "extent": 5.314,
+      "file": "n_min_2005.webp",
+      "sizeKb": 55.1
+    },
+    {
+      "kind": "max",
+      "year": 2006,
+      "date": "2006-03-11",
+      "extent": 14.777,
+      "file": "n_max_2006.webp",
+      "sizeKb": 59.2
+    },
+    {
+      "kind": "min",
+      "year": 2006,
+      "date": "2006-09-14",
+      "extent": 5.746,
+      "file": "n_min_2006.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 2007,
+      "date": "2007-03-10",
+      "extent": 14.842,
+      "file": "n_max_2007.webp",
+      "sizeKb": 58.8
+    },
+    {
+      "kind": "min",
+      "year": 2007,
+      "date": "2007-09-14",
+      "extent": 4.147,
+      "file": "n_min_2007.webp",
+      "sizeKb": 55.4
+    },
+    {
+      "kind": "max",
+      "year": 2008,
+      "date": "2008-02-27",
+      "extent": 15.354,
+      "file": "n_max_2008.webp",
+      "sizeKb": 58.7
+    },
+    {
+      "kind": "min",
+      "year": 2008,
+      "date": "2008-09-18",
+      "extent": 4.548,
+      "file": "n_min_2008.webp",
+      "sizeKb": 55.7
+    },
+    {
+      "kind": "max",
+      "year": 2009,
+      "date": "2009-03-02",
+      "extent": 15.195,
+      "file": "n_max_2009.webp",
+      "sizeKb": 57.8
+    },
+    {
+      "kind": "min",
+      "year": 2009,
+      "date": "2009-09-12",
+      "extent": 5.047,
+      "file": "n_min_2009.webp",
+      "sizeKb": 55.4
+    },
+    {
+      "kind": "max",
+      "year": 2010,
+      "date": "2010-03-31",
+      "extent": 15.351,
+      "file": "n_max_2010.webp",
+      "sizeKb": 58.5
+    },
+    {
+      "kind": "min",
+      "year": 2010,
+      "date": "2010-09-19",
+      "extent": 4.59,
+      "file": "n_min_2010.webp",
+      "sizeKb": 55.4
+    },
+    {
+      "kind": "max",
+      "year": 2011,
+      "date": "2011-03-07",
+      "extent": 14.704,
+      "file": "n_max_2011.webp",
+      "sizeKb": 58.3
+    },
+    {
+      "kind": "min",
+      "year": 2011,
+      "date": "2011-09-08",
+      "extent": 4.333,
+      "file": "n_min_2011.webp",
+      "sizeKb": 55.9
+    },
+    {
+      "kind": "max",
+      "year": 2012,
+      "date": "2012-03-18",
+      "extent": 15.307,
+      "file": "n_max_2012.webp",
+      "sizeKb": 58.2
+    },
+    {
+      "kind": "min",
+      "year": 2012,
+      "date": "2012-09-16",
+      "extent": 3.34,
+      "file": "n_min_2012.webp",
+      "sizeKb": 55.2
+    },
+    {
+      "kind": "max",
+      "year": 2013,
+      "date": "2013-03-14",
+      "extent": 15.196,
+      "file": "n_max_2013.webp",
+      "sizeKb": 57.9
+    },
+    {
+      "kind": "min",
+      "year": 2013,
+      "date": "2013-09-13",
+      "extent": 5.04,
+      "file": "n_min_2013.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 2014,
+      "date": "2014-03-20",
+      "extent": 15.007,
+      "file": "n_max_2014.webp",
+      "sizeKb": 58.6
+    },
+    {
+      "kind": "min",
+      "year": 2014,
+      "date": "2014-09-16",
+      "extent": 4.988,
+      "file": "n_min_2014.webp",
+      "sizeKb": 55.5
+    },
+    {
+      "kind": "max",
+      "year": 2015,
+      "date": "2015-02-22",
+      "extent": 14.554,
+      "file": "n_max_2015.webp",
+      "sizeKb": 58.3
+    },
+    {
+      "kind": "min",
+      "year": 2015,
+      "date": "2015-09-08",
+      "extent": 4.387,
+      "file": "n_min_2015.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 2016,
+      "date": "2016-03-22",
+      "extent": 14.566,
+      "file": "n_max_2016.webp",
+      "sizeKb": 58.5
+    },
+    {
+      "kind": "min",
+      "year": 2016,
+      "date": "2016-09-07",
+      "extent": 4.145,
+      "file": "n_min_2016.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 2017,
+      "date": "2017-03-05",
+      "extent": 14.449,
+      "file": "n_max_2017.webp",
+      "sizeKb": 58.6
+    },
+    {
+      "kind": "min",
+      "year": 2017,
+      "date": "2017-09-13",
+      "extent": 4.635,
+      "file": "n_min_2017.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 2018,
+      "date": "2018-03-14",
+      "extent": 14.499,
+      "file": "n_max_2018.webp",
+      "sizeKb": 58.1
+    },
+    {
+      "kind": "min",
+      "year": 2018,
+      "date": "2018-09-21",
+      "extent": 4.63,
+      "file": "n_min_2018.webp",
+      "sizeKb": 55.3
+    },
+    {
+      "kind": "max",
+      "year": 2019,
+      "date": "2019-03-11",
+      "extent": 14.896,
+      "file": "n_max_2019.webp",
+      "sizeKb": 58.1
+    },
+    {
+      "kind": "min",
+      "year": 2019,
+      "date": "2019-09-18",
+      "extent": 4.166,
+      "file": "n_min_2019.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 2020,
+      "date": "2020-03-04",
+      "extent": 15.071,
+      "file": "n_max_2020.webp",
+      "sizeKb": 57.7
+    },
+    {
+      "kind": "min",
+      "year": 2020,
+      "date": "2020-09-13",
+      "extent": 3.793,
+      "file": "n_min_2020.webp",
+      "sizeKb": 55.3
+    },
+    {
+      "kind": "max",
+      "year": 2021,
+      "date": "2021-03-11",
+      "extent": 14.865,
+      "file": "n_max_2021.webp",
+      "sizeKb": 58.8
+    },
+    {
+      "kind": "min",
+      "year": 2021,
+      "date": "2021-09-14",
+      "extent": 4.757,
+      "file": "n_min_2021.webp",
+      "sizeKb": 55.3
+    },
+    {
+      "kind": "max",
+      "year": 2022,
+      "date": "2022-02-21",
+      "extent": 14.94,
+      "file": "n_max_2022.webp",
+      "sizeKb": 58.6
+    },
+    {
+      "kind": "min",
+      "year": 2022,
+      "date": "2022-09-15",
+      "extent": 4.692,
+      "file": "n_min_2022.webp",
+      "sizeKb": 55.8
+    },
+    {
+      "kind": "max",
+      "year": 2023,
+      "date": "2023-03-05",
+      "extent": 14.636,
+      "file": "n_max_2023.webp",
+      "sizeKb": 58.0
+    },
+    {
+      "kind": "min",
+      "year": 2023,
+      "date": "2023-09-17",
+      "extent": 4.244,
+      "file": "n_min_2023.webp",
+      "sizeKb": 55.6
+    },
+    {
+      "kind": "max",
+      "year": 2024,
+      "date": "2024-03-10",
+      "extent": 15.041,
+      "file": "n_max_2024.webp",
+      "sizeKb": 58.1
+    },
+    {
+      "kind": "min",
+      "year": 2024,
+      "date": "2024-09-10",
+      "extent": 4.245,
+      "file": "n_min_2024.webp",
+      "sizeKb": 55.7
+    },
+    {
+      "kind": "max",
+      "year": 2025,
+      "date": "2025-03-21",
+      "extent": 14.348,
+      "file": "n_max_2025.webp",
+      "sizeKb": 58.5
+    },
+    {
+      "kind": "min",
+      "year": 2025,
+      "date": "2025-09-08",
+      "extent": 4.543,
+      "file": "n_min_2025.webp",
+      "sizeKb": 54.9
+    },
+    {
+      "kind": "latest",
+      "year": 2026,
+      "date": "2026-08-25",
+      "extent": 4.998,
+      "file": "n_latest_2026.webp",
+      "sizeKb": 55.5
+    }
+  ],
+  "skipped": []
+}

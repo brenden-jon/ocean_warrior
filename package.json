@@ -2,11 +2,13 @@
   "name": "planetary-pulse",
   "version": "0.1.0",
   "private": true,
-  "description": "Ocean Warrior | Planetary Pulse — a window into the changing ocean.",
+  "description": "Ocean Warrior | Planetary Pulse \u2014 a window into the changing ocean.",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start",
+    "gate": "node scripts/make-gate.mjs",
+    "bake": "node scripts/bake-data.mjs",
+    "build": "node scripts/make-gate.mjs && next build",
+    "start": "npx serve out",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
