@@ -15,15 +15,20 @@ export default function Proposition() {
         <div className="mb-16 max-w-3xl">
           <p className="eyebrow mb-4">What this is</p>
           <h2 className="display text-[clamp(2rem,4.5vw,3.4rem)] leading-[1.02] text-ice">
-            The state of the ocean,
+            Two ways of knowing
             <br />
-            and the ship that goes there
+            the ocean
           </h2>
           <p className="mt-6 text-base leading-relaxed text-muted">
-            Planetary Pulse does two things. It shows what the world&rsquo;s
-            observing systems know about the ocean and the poles right now. And
-            it shows where Ocean Warrior sails to measure what those systems
-            cannot reach.
+            One watches continuously — satellites overhead, thousands of
+            instruments in the water, updated every day. The other is a ship
+            with scientists aboard, sent to answer a specific question that the
+            continuous record cannot settle on its own.
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-muted">
+            Planetary Pulse holds both in the same frame, so an expedition
+            measurement can be read against forty-six years of context rather
+            than in isolation.
           </p>
         </div>
 
@@ -95,22 +100,24 @@ export default function Proposition() {
             </div>
 
             <h3 className="display text-2xl leading-tight text-ice">
-              Expedition data nobody else collects
+              Science-led expeditions, built around a question
             </h3>
 
             <p className="mt-4 text-sm leading-relaxed text-muted">
-              Satellites measure the top millimetre of the sea. Models compute
-              the rest. Argo floats cover the open ocean but cannot surface
-              through ice, so the high Arctic has a hole in the record that no
-              amount of processing can fill.
+              Every Ocean Warrior expedition starts with a research question set
+              with scientific partners, not with a destination. Is warm Atlantic
+              water pushing further north beneath the Arctic ice each year? What
+              happens to the food web where the sea ice used to be? The route,
+              the stations and the instruments are then chosen to answer it.
             </p>
 
             <p className="mt-4 text-sm leading-relaxed text-muted">
-              Ocean Warrior sails into that hole. Temperature and salinity
-              through the water column, water samples, eDNA, marine mammal
-              observations — taken from a vessel, at stations, repeated in the
-              same places year after year. That repetition is what turns a
-              measurement into evidence.
+              That means measurements satellites cannot make — temperature and
+              salinity right through the water column, water chemistry, eDNA,
+              standardised observations of what is actually living there — taken
+              at fixed stations and repeated in the same places, season after
+              season, for a decade. Repetition is what turns a reading into
+              evidence.
             </p>
 
             <ul className="mt-7 grid grid-cols-2 gap-x-6 gap-y-2.5 text-[13px] text-dim">
@@ -132,7 +139,8 @@ export default function Proposition() {
             <p className="mt-6 rounded-sm border border-[var(--hairline)] bg-[rgba(255,181,71,0.05)] p-3 text-[11px] leading-relaxed text-muted">
               No expedition measurements exist on this platform yet. The data
               schema is built and validated so they can be ingested without a
-              redesign, and the routes below show where they will come from.
+              redesign, and each expedition page already states the question it
+              is designed to answer.
             </p>
 
             <Link

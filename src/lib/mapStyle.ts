@@ -151,8 +151,11 @@ export function buildBaseStyle(options?: {
         type: "fill",
         source: "polar-cap",
         paint: {
-          "fill-color": "#e8f1f7",
-          "fill-opacity": 0.94,
+          // A muted ice tone rather than flat white. This is a cartographic
+          // placeholder for ground the projection cannot reach, so it should
+          // read as part of the ice, not as a graphic pasted over it.
+          "fill-color": "#cfe0ec",
+          "fill-opacity": 0.82,
         },
       },
     ],

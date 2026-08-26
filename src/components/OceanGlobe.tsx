@@ -4,6 +4,7 @@ import maplibregl, { type Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState, useCallback } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import CurrentParticles from "./CurrentParticles";
 import { buildBaseStyle } from "@/lib/mapStyle";
 import {
   GIBS_LAYERS,
@@ -56,6 +57,9 @@ export interface OceanGlobeProps {
   dataLayer: keyof typeof GIBS_LAYERS | null;
   /** Point datasets drawn above the raster. */
   overlays?: PointOverlay[];
+  /** Animate surface-current particles over the map. */
+  showCurrents?: boolean;
+  onCurrentsLoaded?: (info: { date: string; fetchedAt: string }) => void;
   /** Polygon datasets drawn between the raster and the points. */
   polygons?: PolygonOverlay[];
   /** ISO date for the overlay. */
@@ -100,6 +104,8 @@ export default function OceanGlobe({
   dataLayer,
   overlays = [],
   polygons = [],
+  showCurrents = false,
+  onCurrentsLoaded,
   date,
   opacity = 0.85,
   center = [-20, 25],
@@ -547,12 +553,19 @@ export default function OceanGlobe({
   }, [handleClick, ready, onOceanClick]);
 
   return (
-    <div
-      ref={container}
-      className={className}
-      role="application"
-      aria-label="Interactive ocean data globe"
-    />
+    <div className={`relative ${className ?? ""}`}>
+      <div
+        ref={container}
+        className="absolute inset-0 h-full w-full"
+        role="application"
+        aria-label="Interactive ocean data globe"
+      />
+      <CurrentParticles
+        map={ready ? map.current : null}
+        visible={showCurrents}
+        onLoaded={onCurrentsLoaded}
+      />
+    </div>
   );
 }
 

@@ -71,6 +71,8 @@ export default function ExploreMap() {
   const [showBuoys, setShowBuoys] = useState(false);
   const [showMpa, setShowMpa] = useState(false);
   const [showVessels, setShowVessels] = useState(true);
+  const [showCurrents, setShowCurrents] = useState(false);
+  const [currentsInfo, setCurrentsInfo] = useState<{ date: string; fetchedAt: string } | null>(null);
 
   const argo = useArgo();
   const ndbc = useNdbc();
@@ -287,6 +289,8 @@ export default function ExploreMap() {
         center={region.center}
         zoom={region.zoom}
         expeditions={expeditionSlugs}
+        showCurrents={showCurrents}
+        onCurrentsLoaded={setCurrentsInfo}
         globe
         interactive
         onDataCoverageChange={handleCoverage}
@@ -361,6 +365,20 @@ export default function ExploreMap() {
                     : ""}
                 </p>
               )}
+            </LayerGroup>
+
+            <LayerGroup title="Ocean motion" accent="#96e6ff" defaultOpen>
+              <LayerToggle
+                label="Surface currents"
+                checked={showCurrents}
+                onChange={setShowCurrents}
+                swatch="#96e6ff"
+                hint={
+                  currentsInfo
+                    ? `NOAA blended currents, ${currentsInfo.date}. Particles are drawn from measured u/v — they are not water and not drifters.`
+                    : "Animated from NOAA's blended surface-current field. Direction and speed come from the data."
+                }
+              />
             </LayerGroup>
 
             <LayerGroup title="Conservation" accent="#5fe0c0" defaultOpen={false}>

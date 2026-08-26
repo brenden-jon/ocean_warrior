@@ -260,8 +260,46 @@ export const CATALOG: LayerMetadata[] = [
     ],
   },
   {
-    id: "copernicus-currents",
+    id: "noaa-currents",
     title: "Surface currents",
+    plainSummary:
+      "The direction and speed of water moving at the ocean surface, updated daily.",
+    whyItMatters:
+      "Currents carry heat, nutrients, larvae and pollution. They are why an expedition's exact position matters: the same latitude on either side of a front can be a completely different ocean.",
+    category: "ocean_physics",
+    sourceType: "derived",
+    status: "live",
+    cadence: "daily",
+    sourceOrg: "NOAA CoastWatch",
+    productName:
+      "Blended near-real-time sea surface currents (geostrophic, altimetry-derived)",
+    datasetId: "noaacwBLENDEDNRTcurrentsDaily",
+    variables: [
+      { name: "u_current", unit: "m/s", description: "Eastward surface velocity" },
+      { name: "v_current", unit: "m/s", description: "Northward surface velocity" },
+    ],
+    spatialCoverage: "Global ocean",
+    spatialResolution: "0.25°, thinned to 1° for the animation",
+    temporalCoverage: "2015 to present",
+    latency: "1–2 days",
+    accessMethod:
+      "NOAA CoastWatch ERDDAP, fetched daily by a scheduled job and served as a compact grid",
+    requiresProxy: true,
+    requiredCredentials: [],
+    license: "NOAA open data — public domain",
+    attribution: "NOAA CoastWatch blended sea surface currents.",
+    sourceUrl:
+      "https://coastwatch.noaa.gov/erddap/griddap/noaacwBLENDEDNRTcurrentsDaily.html",
+    caveats: [
+      "The animated particles are a way of DRAWING the velocity field. They are not water, and not tracked drifters — no particle corresponds to anything real.",
+      "This is a geostrophic estimate derived largely from satellite altimetry, not a direct current measurement. It captures the large-scale circulation, not tides, wind drift or short-lived features.",
+      "Accuracy falls near coasts, at the equator where the geostrophic assumption breaks down, and under sea ice.",
+      "Shown as a daily snapshot at 1° resolution; the source is finer and the animation should not be read as showing small-scale detail.",
+    ],
+  },
+  {
+    id: "copernicus-currents",
+    title: "Surface currents (high resolution)",
     plainSummary:
       "The direction and speed of water movement at the ocean surface.",
     whyItMatters:

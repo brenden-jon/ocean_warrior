@@ -366,6 +366,103 @@ async function bakeArgo() {
   });
 }
 
+
+/* ========================================================================== */
+/* NOAA CoastWatch — blended surface currents                                 */
+/* ========================================================================== */
+
+/**
+ * Global surface-current vectors, thinned to a 1-degree grid.
+ *
+ * The native product is 0.25°, which is far finer than a particle animation
+ * needs and would be a needlessly large download. ERDDAP can stride the grid
+ * server-side, so we ask for every fourth cell rather than fetching everything
+ * and throwing three quarters of it away.
+ *
+ * Stored as two flat row-major arrays with nulls over land, which is markedly
+ * smaller than lat/lon/value triples and is exactly the shape the interpolator
+ * in the browser wants.
+ */
+async function bakeCurrents() {
+  console.log("NOAA CoastWatch — blended surface currents");
+  const base =
+    "https://coastwatch.noaa.gov/erddap/griddap/noaacwBLENDEDNRTcurrentsDaily.csv";
+  const range = "%5B(last)%5D%5B(-89.875):4:(89.875)%5D%5B(-179.875):4:(179.875)%5D";
+  const csv = await fetchText(`${base}?u_current${range},v_current${range}`, {
+    label: "NOAA currents",
+    timeoutMs: 240_000,
+  });
+
+  const lines = csv.split("\n");
+  // Row 0 is column names, row 1 is units.
+  const lats = new Set();
+  const lons = new Set();
+  const cells = new Map();
+  let date = null;
+
+  for (let i = 2; i < lines.length; i++) {
+    const parts = lines[i].split(",");
+    if (parts.length < 5) continue;
+    const [time, latStr, lonStr, uStr, vStr] = parts;
+    const lat = Number(latStr);
+    const lon = Number(lonStr);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    if (!date) date = time.slice(0, 10);
+    lats.add(lat);
+    lons.add(lon);
+    const u = Number(uStr);
+    const v = Number(vStr);
+    cells.set(
+      `${lat},${lon}`,
+      Number.isFinite(u) && Number.isFinite(v)
+        ? [Number(u.toFixed(3)), Number(v.toFixed(3))]
+        : null,
+    );
+  }
+
+  const latList = [...lats].sort((a, b) => a - b);
+  const lonList = [...lons].sort((a, b) => a - b);
+  if (latList.length === 0 || lonList.length === 0) {
+    throw new Error("no current cells parsed");
+  }
+
+  const u = [];
+  const v = [];
+  for (const lat of latList) {
+    for (const lon of lonList) {
+      const cell = cells.get(`${lat},${lon}`);
+      u.push(cell ? cell[0] : null);
+      v.push(cell ? cell[1] : null);
+    }
+  }
+
+  const withData = u.filter((x) => x !== null).length;
+
+  await write("currents.json", {
+    fetchedAt: NOW,
+    date,
+    source: {
+      org: "NOAA CoastWatch",
+      product: "Blended near-real-time sea surface currents (geostrophic, altimetry-derived)",
+      datasetId: "noaacwBLENDEDNRTcurrentsDaily",
+      url: "https://coastwatch.noaa.gov/erddap/griddap/noaacwBLENDEDNRTcurrentsDaily.html",
+      unit: "m/s",
+      attribution: "NOAA CoastWatch blended sea surface currents.",
+    },
+    grid: {
+      lat0: latList[0],
+      lon0: lonList[0],
+      dLat: latList.length > 1 ? Number((latList[1] - latList[0]).toFixed(4)) : 1,
+      dLon: lonList.length > 1 ? Number((lonList[1] - lonList[0]).toFixed(4)) : 1,
+      nLat: latList.length,
+      nLon: lonList.length,
+    },
+    cellsWithData: withData,
+    u,
+    v,
+  });
+}
+
 /* ========================================================================== */
 
 const TASKS = [
@@ -373,6 +470,7 @@ const TASKS = [
   ["ndbc", bakeNdbc],
   ["gistemp", bakeGistemp],
   ["argo", bakeArgo],
+  ["currents", bakeCurrents],
 ];
 
 let failures = 0;
