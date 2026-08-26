@@ -4,13 +4,14 @@
   "private": true,
   "description": "Ocean Warrior | Planetary Pulse \u2014 a window into the changing ocean.",
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "node scripts/clean-build-dirs.mjs && next dev -p 3000",
     "gate": "node scripts/make-gate.mjs",
     "bake": "node scripts/bake-data.mjs",
-    "build": "node scripts/make-gate.mjs && next build",
+    "build": "node scripts/clean-build-dirs.mjs && node scripts/make-gate.mjs && next build",
     "start": "npx serve out",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "node scripts/clean-build-dirs.mjs && tsc --noEmit",
+    "clean": "node scripts/clean-build-dirs.mjs"
   },
   "dependencies": {
     "d3-array": "^3.2.4",

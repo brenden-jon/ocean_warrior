@@ -31,10 +31,12 @@ jobs:
 
       - name: Build static export
         env:
-          # The access-gate passphrase. Never committed; set as a repository
-          # secret. The build turns it into a salted PBKDF2/AES-GCM sentinel,
-          # so the passphrase itself never reaches the published site.
-          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+          # No secret required. The access gate ships as a committed
+          # public/gate.json holding only a salted PBKDF2/AES-GCM ciphertext,
+          # so the passphrase itself is nowhere in the repository or the build.
+          # To change the passphrase, run `APP_PASSWORD='…' npm run gate`
+          # locally and commit the regenerated file.
+          #
           # Project pages are served from /<repo>/, so assets need the prefix.
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
         run: npm run build

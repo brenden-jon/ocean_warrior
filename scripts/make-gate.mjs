@@ -13,6 +13,7 @@
  */
 
 import { webcrypto as crypto } from "node:crypto";
+import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,13 +21,29 @@ import { fileURLToPath } from "node:url";
 const PBKDF2_ITERATIONS = 600_000;
 const SENTINEL_PLAINTEXT = "planetary-pulse";
 
+const here = dirname(fileURLToPath(import.meta.url));
+const target = resolve(here, "..", "public", "gate.json");
+
 const passphrase = process.env.APP_PASSWORD;
 
+/*
+ * The sentinel is committed to the repository, so the deployment needs no
+ * secret and no configuration — switching on GitHub Pages is the only setup
+ * step. Committing it costs nothing: the published site has to serve this file
+ * to the browser anyway, so it was always public. The passphrase itself is
+ * still absent from the repository; only its salted, iterated, authenticated
+ * ciphertext is here.
+ *
+ * Setting APP_PASSWORD regenerates it, which is how the passphrase is changed.
+ */
 if (!passphrase || passphrase === "CHANGE_ME") {
+  if (existsSync(target)) {
+    console.log("Using the committed public/gate.json (APP_PASSWORD not set).");
+    process.exit(0);
+  }
   console.error(
-    "\n  APP_PASSWORD is not set.\n\n" +
-      "  Locally:  APP_PASSWORD='your passphrase' npm run build\n" +
-      "  In CI:    add APP_PASSWORD as a GitHub Actions secret.\n",
+    "\n  No gate found and APP_PASSWORD is not set.\n\n" +
+      "  Generate one with:  APP_PASSWORD='your passphrase' npm run gate\n",
   );
   process.exit(1);
 }
@@ -75,8 +92,6 @@ const sentinel = {
   iterations: PBKDF2_ITERATIONS,
 };
 
-const here = dirname(fileURLToPath(import.meta.url));
-const target = resolve(here, "..", "public", "gate.json");
 await mkdir(dirname(target), { recursive: true });
 await writeFile(target, JSON.stringify(sentinel, null, 2) + "\n");
 

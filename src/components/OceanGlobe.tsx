@@ -19,9 +19,29 @@ import {
   expeditionRouteFeatures,
 } from "@/lib/geo";
 
+/**
+ * A point overlay drawn above the raster layers — observing platforms,
+ * biodiversity records, stations. Kept generic so the map component does not
+ * need to know what any particular dataset means.
+ */
+export interface PointOverlay {
+  id: string;
+  data: GeoJSON.FeatureCollection;
+  color: string;
+  /** Radius in pixels at zoom 1 and zoom 6, interpolated between. */
+  radius: [number, number];
+  opacity?: number;
+  strokeColor?: string;
+  /** Property name to show as a label in the click popup. */
+  popupFields?: { key: string; label: string; unit?: string }[];
+  popupTitle?: string;
+}
+
 export interface OceanGlobeProps {
   /** Which GIBS overlay to draw, by key in GIBS_LAYERS. Null for base only. */
   dataLayer: keyof typeof GIBS_LAYERS | null;
+  /** Point datasets drawn above the raster. */
+  overlays?: PointOverlay[];
   /** ISO date for the overlay. */
   date: string;
   /** Overlay opacity 0–1. */
@@ -49,6 +69,7 @@ const OVERLAY_LAYER = "gibs-overlay-layer";
 
 export default function OceanGlobe({
   dataLayer,
+  overlays = [],
   date,
   opacity = 0.85,
   center = [-20, 25],
@@ -204,6 +225,91 @@ export default function OceanGlobe({
       addExpeditionLayers(instance, expedition);
     }
   }, [expeditions, ready]);
+
+  /* -------------------------------------------------- point overlays -- */
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || !ready) return;
+
+    const drawn: string[] = [];
+
+    for (const overlay of overlays) {
+      const sourceId = `ov-src-${overlay.id}`;
+      const layerId = `ov-${overlay.id}`;
+      drawn.push(overlay.id);
+
+      if (instance.getSource(sourceId)) {
+        (instance.getSource(sourceId) as maplibregl.GeoJSONSource).setData(
+          overlay.data,
+        );
+      } else {
+        instance.addSource(sourceId, { type: "geojson", data: overlay.data });
+        instance.addLayer({
+          id: layerId,
+          type: "circle",
+          source: sourceId,
+          paint: {
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              1,
+              overlay.radius[0],
+              6,
+              overlay.radius[1],
+            ],
+            "circle-color": overlay.color,
+            "circle-opacity": overlay.opacity ?? 0.85,
+            "circle-stroke-color": overlay.strokeColor ?? "#020914",
+            "circle-stroke-width": 0.6,
+          },
+        });
+
+        if (overlay.popupFields) {
+          instance.on("click", layerId, (event) => {
+            const feature = event.features?.[0];
+            if (!feature) return;
+            const props = feature.properties ?? {};
+            const rows = overlay.popupFields!
+              .filter((f) => props[f.key] != null && props[f.key] !== "")
+              .map(
+                (f) =>
+                  `<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0">
+                     <span style="color:#5d7488">${f.label}</span>
+                     <span style="color:#f4faff;font-variant-numeric:tabular-nums">${props[f.key]}${f.unit ? " " + f.unit : ""}</span>
+                   </div>`,
+              )
+              .join("");
+            new maplibregl.Popup({ closeButton: true, maxWidth: "280px" })
+              .setLngLat(event.lngLat)
+              .setHTML(
+                `<div style="padding:14px 16px;font-family:var(--font-inter),sans-serif;font-size:12px">
+                   <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d7488;margin-bottom:8px">${overlay.popupTitle ?? ""}</div>
+                   ${rows}
+                 </div>`,
+              )
+              .addTo(instance);
+          });
+          instance.on("mouseenter", layerId, () => {
+            instance.getCanvas().style.cursor = "pointer";
+          });
+          instance.on("mouseleave", layerId, () => {
+            instance.getCanvas().style.cursor = "";
+          });
+        }
+      }
+    }
+
+    // Remove overlays that are no longer requested.
+    return () => {
+      for (const id of drawn) {
+        const layerId = `ov-${id}`;
+        const sourceId = `ov-src-${id}`;
+        if (instance.getLayer(layerId)) instance.removeLayer(layerId);
+        if (instance.getSource(sourceId)) instance.removeSource(sourceId);
+      }
+    };
+  }, [overlays, ready]);
 
   /* ----------------------------------------------------- auto-rotate -- */
   useEffect(() => {

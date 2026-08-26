@@ -7,6 +7,8 @@ import { GIBS_LAYERS, clampToCoverage } from "@/lib/gibs";
 import { REGION_PRESETS } from "@/lib/mapStyle";
 import { getLayer } from "@/lib/catalog";
 import { EXPEDITIONS } from "@/data/expeditions";
+import { useArgo, useNdbc, relativeAge } from "@/lib/baked";
+import type { PointOverlay } from "./OceanGlobe";
 
 /**
  * The explore view: one map, one time control, one contextual card.
@@ -37,6 +39,11 @@ export default function ExploreMap() {
   const [showExpeditions, setShowExpeditions] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [outsideCoverage, setOutsideCoverage] = useState(false);
+  const [showArgo, setShowArgo] = useState(false);
+  const [showBuoys, setShowBuoys] = useState(false);
+
+  const argo = useArgo();
+  const ndbc = useNdbc();
 
   const layer = GIBS_LAYERS[layerKey];
   const meta = getLayer(layer.catalogId);
@@ -55,10 +62,81 @@ export default function ExploreMap() {
     [showExpeditions],
   );
 
+  /**
+   * Observing-platform overlays.
+   *
+   * Both are in-situ measurements — actual instruments in actual water — which
+   * is why they are drawn as discrete points rather than a continuous field.
+   * Where they are absent, nothing is measured. That gap is the point.
+   */
+  const overlays = useMemo(() => {
+    const list: PointOverlay[] = [];
+
+    if (showArgo && argo.data) {
+      list.push({
+        id: "argo",
+        color: "#4fd8ff",
+        radius: [1.8, 4],
+        opacity: 0.8,
+        popupTitle: "Argo float",
+        popupFields: [
+          { key: "id", label: "Platform" },
+          { key: "time", label: "Last surfaced" },
+          { key: "lat", label: "Latitude", unit: "°N" },
+          { key: "lon", label: "Longitude", unit: "°E" },
+        ],
+        data: {
+          type: "FeatureCollection",
+          features: argo.data.floats.map((f) => ({
+            type: "Feature" as const,
+            geometry: { type: "Point" as const, coordinates: [f.lon, f.lat] },
+            properties: { id: f.id, time: f.time.slice(0, 10), lat: f.lat, lon: f.lon },
+          })),
+        },
+      });
+    }
+
+    if (showBuoys && ndbc.data) {
+      list.push({
+        id: "ndbc",
+        color: "#ffb547",
+        radius: [1.8, 4.5],
+        opacity: 0.85,
+        popupTitle: "NOAA buoy",
+        popupFields: [
+          { key: "id", label: "Station" },
+          { key: "time", label: "Observed" },
+          { key: "waterTemp", label: "Water temp", unit: "°C" },
+          { key: "waveHeight", label: "Wave height", unit: "m" },
+          { key: "windSpeed", label: "Wind", unit: "m/s" },
+          { key: "pressure", label: "Pressure", unit: "hPa" },
+        ],
+        data: {
+          type: "FeatureCollection",
+          features: ndbc.data.stations.map((s) => ({
+            type: "Feature" as const,
+            geometry: { type: "Point" as const, coordinates: [s.lon, s.lat] },
+            properties: {
+              id: s.id,
+              time: s.time.replace("T", " ").replace(":00Z", " UTC"),
+              waterTemp: s.waterTemp ?? "",
+              waveHeight: s.waveHeight ?? "",
+              windSpeed: s.windSpeed ?? "",
+              pressure: s.pressure ?? "",
+            },
+          })),
+        },
+      });
+    }
+
+    return list;
+  }, [showArgo, showBuoys, argo.data, ndbc.data]);
+
   return (
     <div className="relative h-dvh w-full overflow-hidden">
       <OceanGlobe
         dataLayer={layerKey}
+        overlays={overlays}
         date={effectiveDate}
         opacity={opacity}
         center={region.center}
@@ -138,7 +216,53 @@ export default function ExploreMap() {
               />
             </div>
 
+            <div className="mt-4 space-y-2.5 border-t border-[var(--hairline)] pt-4">
+              <p className="eyebrow">Observing systems</p>
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  checked={showArgo}
+                  onChange={(e) => setShowArgo(e.target.checked)}
+                  className="accent-cyan"
+                />
+                <span className="flex-1">Argo floats</span>
+                {argo.data && (
+                  <span className="text-[10px] text-dim tnum">
+                    {argo.data.count.toLocaleString()}
+                  </span>
+                )}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  checked={showBuoys}
+                  onChange={(e) => setShowBuoys(e.target.checked)}
+                  className="accent-cyan"
+                />
+                <span className="flex-1">NOAA buoys</span>
+                {ndbc.data && (
+                  <span className="text-[10px] text-dim tnum">
+                    {ndbc.data.count.toLocaleString()}
+                  </span>
+                )}
+              </label>
+
+              {(showArgo || showBuoys) && (
+                <p className="pt-1 text-[10px] leading-relaxed text-dim">
+                  In-situ measurements. Empty ocean means no instrument there,
+                  not calm or unremarkable water.
+                  {argo.data && showArgo && (
+                    <>
+                      {" "}
+                      Snapshot {relativeAge(argo.data.fetchedAt)}.
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+
             <div className="mt-4 border-t border-[var(--hairline)] pt-4">
+              <p className="eyebrow mb-2.5">Ocean Warrior</p>
               <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted">
                 <input
                   type="checkbox"
@@ -146,7 +270,7 @@ export default function ExploreMap() {
                   onChange={(e) => setShowExpeditions(e.target.checked)}
                   className="accent-cyan"
                 />
-                Ocean Warrior routes
+                Expedition routes
               </label>
             </div>
           </div>
